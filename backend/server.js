@@ -10,6 +10,7 @@ app.use(express.json());
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/recipes', require('./routes/recipes'));
+app.use('/api/users', require('./routes/users'));
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("Connected to MongoDB Atlas"))
