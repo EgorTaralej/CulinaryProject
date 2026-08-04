@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Recipe = require('../models/Recipe');
+const User = require('../models/User');
 
 router.get('/search/ingredients', async (req, res) => {
     try {
@@ -23,6 +24,21 @@ router.get('/search/ingredients', async (req, res) => {
         }
 
         const recipes = await Recipe.find(query).populate('author', ['username']);
+        res.json(recipes);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.get('/feed', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        
+        const recipes = await Recipe.find({ author: { $in: user.following } })
+            .populate('author', ['username'])
+            .sort({ createdAt: -1 });
+
         res.json(recipes);
     } catch (err) {
         console.error(err.message);
