@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const Recipe = require('../models/Recipe');
 const User = require('../models/User');
 const Comment = require('../models/Comment');
+const Report = require('../models/Report');
 
 router.get('/search/ingredients', async (req, res) => {
     try {
@@ -123,6 +124,28 @@ router.post('/:id/rate', auth, async (req, res) => {
 
         await recipe.save();
         res.json({ averageRating: recipe.averageRating, ratingsCount: recipe.ratings.length });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.post('/:id/report', auth, async (req, res) => {
+    try {
+        const { reason, description } = req.body;
+        
+        const newReport = new Report({
+            recipe: req.params.id,
+            reporter: req.user.id,
+            reason,
+            description
+        });
+
+        await newReport.save();
+
+        await Recipe.findByIdAndUpdate(req.params.id, { isReported: true });
+
+        res.status(201).json({ message: "Recipe reported successfully" });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');

@@ -36,4 +36,22 @@ router.put('/follow/:id', auth, async (req, res) => {
     }
 });
 
+router.put('/favorite/:recipeId', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        
+        if (user.favorites.includes(req.params.recipeId)) {
+            user.favorites = user.favorites.filter(id => id.toString() !== req.params.recipeId);
+            await user.save();
+            return res.json({ message: "Removed from favorites" });
+        }
+
+        user.favorites.push(req.params.recipeId);
+        await user.save();
+        res.json({ message: "Added to favorites" });
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;
