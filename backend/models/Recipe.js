@@ -9,6 +9,10 @@ const recipeSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    mainImage: {
+        type: String,
+        default: ""
+    },
     ingredients: [{
         type: String,
         required: true

@@ -4,6 +4,7 @@ import { AuthContext } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import CreateRecipe from './pages/CreateRecipe';
 import Home from './pages/Home';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
           <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
           <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
+          <Route path="/create-recipe" element={user ? <CreateRecipe /> : <Navigate to="/login" />} />
         </Routes>
       </div>
     </div>
