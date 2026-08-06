@@ -23,21 +23,21 @@ const Login = () => {
             <form onSubmit={handleSubmit} className="w-full max-w-md bg-white p-8 shadow-lg rounded-2xl">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Вход в системата</h2>
                 <div className="space-y-4">
-                    <input 
-                        type="email" 
-                        placeholder="Имейл" 
-                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                    <input
+                        type="email"
+                        placeholder="Имейл"
+                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none" // Сменено на red-500
                         onChange={(e) => setEmail(e.target.value)}
                         required
                     />
-                    <input 
-                        type="password" 
-                        placeholder="Парола" 
-                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                    <input
+                        type="password"
+                        placeholder="Парола"
+                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none" // Сменено на red-500
                         onChange={(e) => setPassword(e.target.value)}
                         required
                     />
-                    <button className="w-full bg-orange-500 text-white p-3 rounded-lg font-bold hover:bg-orange-600 transition">
+                    <button className="w-full bg-red-600 text-white p-3 rounded-lg font-bold hover:bg-red-700 transition shadow-sm">
                         Влез
                     </button>
                 </div>
