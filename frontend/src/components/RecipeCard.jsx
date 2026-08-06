@@ -1,53 +1,61 @@
-import { Star, Clock, User } from 'lucide-react';
+import { Star, User, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const RecipeCard = ({ recipe }) => {
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-            {/* Снимка на рецептата */}
-            <div className="h-48 overflow-hidden bg-gray-200">
-                {recipe.steps.find(s => s.image) ? (
+        <Card className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300 rounded-3xl bg-white">
+            {/* Снимка */}
+            <div className="relative h-52 overflow-hidden">
+                {recipe.mainImage ? (
                     <img 
-                        src={recipe.steps.find(s => s.image).image} 
+                        src={recipe.mainImage} 
                         alt={recipe.title} 
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
                         Няма снимка
                     </div>
                 )}
+                <div className="absolute top-4 right-4">
+                    <Badge className="bg-white/90 text-red-600 hover:bg-white border-none backdrop-blur-sm font-bold">
+                        {recipe.category.difficulty}
+                    </Badge>
+                </div>
             </div>
 
-            {/* Информация */}
-            <div className="p-5">
-                <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-bold text-gray-800 leading-tight">
+            <CardHeader className="p-5 pb-2">
+                <div className="flex justify-between items-start">
+                    <h3 className="text-xl font-bold text-slate-800 line-clamp-1">
                         {recipe.title}
                     </h3>
-                    <div className="flex items-center text-yellow-500 font-bold">
-                        <Star size={16} fill="currentColor" />
-                        <span className="ml-1 text-sm">{recipe.averageRating.toFixed(1)}</span>
+                    <div className="flex items-center text-amber-500 font-bold bg-amber-50 px-2 py-1 rounded-lg">
+                        <Star size={14} fill="currentColor" />
+                        <span className="ml-1 text-xs">{recipe.averageRating.toFixed(1)}</span>
                     </div>
                 </div>
+            </CardHeader>
 
-                <div className="flex items-center gap-4 text-gray-500 text-xs mb-4">
-                    <span className="flex items-center gap-1">
-                        <User size={14} /> {recipe.author?.username}
-                    </span>
-                    <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded-full font-medium">
-                        {recipe.category.difficulty}
-                    </span>
+            <CardContent className="px-5 pt-0 pb-4">
+                <div className="flex items-center gap-2 text-slate-500 text-sm">
+                    <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                        <User size={12} />
+                    </div>
+                    <span className="font-medium">{recipe.author?.username}</span>
                 </div>
+            </CardContent>
 
-                <Link 
-                    to={`/recipe/${recipe._id}`}
-                    className="block w-full text-center py-2 bg-gray-50 text-gray-700 font-bold rounded-xl hover:bg-red-600 hover:text-white transition-colors"
-                >
-                    Виж рецептата
-                </Link>
-            </div>
-        </div>
+            <CardFooter className="p-5 pt-0">
+                <Button asChild className="w-full bg-slate-50 hover:bg-red-600 hover:text-white text-slate-700 border-none shadow-none rounded-xl font-bold transition-colors">
+                    <Link to={`/recipe/${recipe._id}`} className="flex items-center justify-center gap-2">
+                        Виж рецептата <ChevronRight size={16} />
+                    </Link>
+                </Button>
+            </CardFooter>
+        </Card>
     );
 };
 

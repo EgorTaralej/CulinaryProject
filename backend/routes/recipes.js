@@ -50,11 +50,12 @@ router.get('/feed', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
     try {
-        const { title, description, ingredients, steps, category, videoUrl } = req.body;
+        const { title, description, mainImage, ingredients, steps, category, videoUrl } = req.body;
 
         const newRecipe = new Recipe({
             title,
             description,
+            mainImage,
             ingredients,
             steps,
             category,

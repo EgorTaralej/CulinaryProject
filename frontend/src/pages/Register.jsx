@@ -5,20 +5,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import toast from 'react-hot-toast';
+import { useToast } from "@/hooks/use-toast"; // Ползваме Shadcn hook
 
 const Register = () => {
     const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+    const { toast } = useToast(); // Инициализираме тоста
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             await api.post('/auth/register', formData);
-            toast.success('Регистрацията е успешна!');
+            toast({
+                title: "Успешна регистрация!",
+                description: "Вече можете да влезете в профила си.",
+            });
             navigate('/login');
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Грешка при регистрация');
+            toast({
+                variant: "destructive",
+                title: "Грешка при регистрация",
+                description: err.response?.data?.message || "Нещо се обърка. Моля, опитайте пак.",
+            });
         }
     };
 
@@ -26,7 +34,7 @@ const Register = () => {
         <div className="flex min-h-[80vh] items-center justify-center px-4">
             <Card className="w-full max-w-md shadow-xl border-t-4 border-t-red-600">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center">Създаване на профил</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-center">Регистрация</CardTitle>
                     <CardDescription className="text-center">
                         Станете част от нашата кулинарна общност
                     </CardDescription>
