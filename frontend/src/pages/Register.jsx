@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast"; // Ползваме Shadcn hook
+import { useToast } from "@/hooks/use-toast";
 
 const Register = () => {
     const [formData, setFormData] = useState({ username: '', email: '', password: '' });
-    const { toast } = useToast(); // Инициализираме тоста
+    const { toast } = useToast();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {

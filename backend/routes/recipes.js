@@ -6,41 +6,11 @@ const User = require('../models/User');
 const Comment = require('../models/Comment');
 const Report = require('../models/Report');
 
-router.get('/search/ingredients', async (req, res) => {
+router.get('/', async (req, res) => {
     try {
-        const { include, exclude } = req.query;
-        let query = {};
-
-        if (include) {
-            const includeArray = include.split(',').map(s => s.trim());
-            query.ingredients = { $all: includeArray };
-        }
-
-        if (exclude) {
-            const excludeArray = exclude.split(',').map(s => s.trim());
-            if (!query.ingredients) {
-                query.ingredients = { $nin: excludeArray };
-            } else {
-                query.ingredients.$nin = excludeArray;
-            }
-        }
-
-        const recipes = await Recipe.find(query).populate('author', ['username']);
-        res.json(recipes);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
-});
-
-router.get('/feed', auth, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-
-        const recipes = await Recipe.find({ author: { $in: user.following } })
+        const recipes = await Recipe.find()
             .populate('author', ['username'])
             .sort({ createdAt: -1 });
-
         res.json(recipes);
     } catch (err) {
         console.error(err.message);
@@ -66,38 +36,7 @@ router.post('/', auth, async (req, res) => {
         const recipe = await newRecipe.save();
         res.status(201).json(recipe);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
-});
-
-router.get('/', async (req, res) => {
-    try {
-        const recipes = await Recipe.find()
-            .populate('author', ['username'])
-            .sort({ createdAt: -1 });
-        res.json(recipes);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
-});
-
-router.post('/:id/comment', auth, async (req, res) => {
-    try {
-        const recipe = await Recipe.findById(req.params.id);
-        if (!recipe) return res.status(404).json({ message: "Recipe not found" });
-
-        const newComment = new Comment({
-            text: req.body.text,
-            author: req.user.id,
-            recipe: req.params.id
-        });
-
-        const comment = await newComment.save();
-        res.status(201).json(comment);
-    } catch (err) {
-        console.error(err.message);
+        console.error("err.message");
         res.status(500).send('Server Error');
     }
 });
@@ -105,50 +44,54 @@ router.post('/:id/comment', auth, async (req, res) => {
 router.post('/:id/rate', auth, async (req, res) => {
     try {
         const { stars } = req.body;
-        if (stars < 1 || stars > 5) {
-            return res.status(400).json({ message: "Rating must be between 1 and 5" });
-        }
-
         const recipe = await Recipe.findById(req.params.id);
         if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
         const existingRating = recipe.ratings.find(r => r.user.toString() === req.user.id);
-
-        if (existingRating) {
-            existingRating.stars = stars;
-        } else {
-            recipe.ratings.push({ user: req.user.id, stars });
-        }
+        if (existingRating) existingRating.stars = stars;
+        else recipe.ratings.push({ user: req.user.id, stars });
 
         const totalStars = recipe.ratings.reduce((sum, r) => sum + r.stars, 0);
         recipe.averageRating = totalStars / recipe.ratings.length;
 
         await recipe.save();
-        res.json({ averageRating: recipe.averageRating, ratingsCount: recipe.ratings.length });
+        res.json({ averageRating: recipe.averageRating });
     } catch (err) {
-        console.error(err.message);
+        console.error("Error in POST /rate:", err.message);
         res.status(500).send('Server Error');
     }
 });
 
-router.post('/:id/report', auth, async (req, res) => {
+router.post('/:id/comment', auth, async (req, res) => {
     try {
-        const { reason, description } = req.body;
-        
-        const newReport = new Report({
-            recipe: req.params.id,
-            reporter: req.user.id,
-            reason,
-            description
+        const newComment = new Comment({
+            text: req.body.text,
+            author: req.user.id,
+            recipe: req.params.id
         });
 
-        await newReport.save();
-
-        await Recipe.findByIdAndUpdate(req.params.id, { isReported: true });
-
-        res.status(201).json({ message: "Recipe reported successfully" });
+        await newComment.save();
+        const populated = await Comment.findById(newComment._id).populate('author', ['username']);
+        res.status(201).json(populated);
     } catch (err) {
-        console.error(err.message);
+        console.error("Error in POST /comment:", err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.get('/:id', async (req, res) => {
+    try {
+        const recipe = await Recipe.findById(req.params.id).populate('author', ['username']);
+        if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+
+        const comments = await Comment.find({ recipe: req.params.id })
+            .populate('author', ['username'])
+            .sort({ createdAt: -1 });
+
+        res.json({ recipe, comments });
+    } catch (err) {
+        console.error("Error in GET /:id:", err.message);
+        if (err.kind === 'ObjectId') return res.status(404).json({ message: "Invalid ID" });
         res.status(500).send('Server Error');
     }
 });
