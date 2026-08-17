@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '@/context/AuthContext';
-import { LogOut, PlusSquare, User } from 'lucide-react';
+import { LogOut, PlusSquare, User, Home } from 'lucide-react'; // Добавен Home
 
 const Navbar = () => {
     const { user, logout } = useContext(AuthContext);
@@ -16,18 +16,20 @@ const Navbar = () => {
                 </Link>
 
                 <div className="flex items-center gap-6">
-                    <Link to="/" className="text-slate-600 hover:text-orange-500 transition-colors font-medium">Начало</Link>
-                    
+                    <Link to="/" className="flex items-center gap-1.5 text-slate-600 hover:text-orange-500 transition-colors font-medium">
+                        <Home size={18} /> <span>Начало</span>
+                    </Link>
+
                     {user ? (
                         <>
-                            <Link to="/create-recipe" className="flex items-center gap-1 text-slate-600 hover:text-orange-500 transition-colors font-medium">
-                                <PlusSquare size={20} /> <span className="hidden md:inline">Нова рецепта</span>
+                            <Link to="/create-recipe" className="flex items-center gap-1.5 text-slate-600 hover:text-orange-500 transition-colors font-medium">
+                                <PlusSquare size={18} /> <span>Нова рецепта</span>
                             </Link>
-                            <Link to="/profile" className="flex items-center gap-1 text-slate-600 hover:text-orange-500 transition-colors font-medium">
-                                <User size={20} /> <span>{user.username}</span>
+                            <Link to="/profile" className="flex items-center gap-1.5 text-slate-600 hover:text-orange-500 transition-colors font-medium">
+                                <User size={18} /> <span>{user.username}</span>
                             </Link>
                             <button onClick={() => { logout(); navigate('/login'); }} className="text-slate-400 hover:text-red-500 transition">
-                                <LogOut size={20} />
+                                <LogOut size={18} />
                             </button>
                         </>
                     ) : (

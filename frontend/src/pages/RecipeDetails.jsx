@@ -20,7 +20,10 @@ const RecipeDetails = () => {
     const { toast } = useToast();
     const revalidator = useRevalidator();
     const { user } = useContext(AuthContext);
+    
     const [newComment, setNewComment] = useState('');
+    const [userRating, setUserRating] = useState(0);
+    const isAuthor = user?.id === recipe.author._id;
 
     const handleAddComment = async (e) => {
         e.preventDefault();
@@ -32,6 +35,18 @@ const RecipeDetails = () => {
             toast({ title: "Коментарът е добавен!" });
         } catch (err) {
             toast({ variant: "destructive", title: "Грешка при изпращане" });
+        }
+    };
+
+    const handleRate = async (stars) => {
+        if (isAuthor) return;
+        try {
+            await api.post(`/recipes/${recipe._id}/rate`, { stars });
+            setUserRating(stars);
+            revalidator.revalidate(); 
+            toast({ title: "Благодарим за оценката!", description: `Дадохте ${stars} звезди.` });
+        } catch (err) {
+            toast({ variant: "destructive", title: "Грешка при оценяване" });
         }
     };
 
@@ -55,7 +70,7 @@ const RecipeDetails = () => {
                         <img src={recipe.mainImage} className="w-full h-full object-cover" alt={recipe.title} />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold">
-                            Няма снимка
+                            Няма налична снимка
                         </div>
                     )}
                 </div>
@@ -84,6 +99,26 @@ const RecipeDetails = () => {
                         </div>
                         <div className="px-4 py-2 bg-orange-50 rounded-full text-xs font-black text-orange-600 uppercase tracking-wider">
                             {recipe.category?.difficulty}
+                        </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100">
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
+                            {isAuthor ? "Не можете да оценявате собствена рецепта" : "Вашата оценка"}
+                        </p>
+                        <div className="flex gap-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <button 
+                                    key={star} 
+                                    onClick={() => handleRate(star)}
+                                    disabled={isAuthor}
+                                    className={`p-2 rounded-xl transition-all 
+                                        ${userRating >= star ? 'text-orange-500 bg-orange-50' : 'text-slate-300 bg-slate-50'} 
+                                        ${isAuthor ? 'cursor-not-allowed opacity-50' : 'hover:bg-slate-100'}`}
+                                >
+                                    <Star size={28} fill={userRating >= star ? "currentColor" : "none"} />
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -155,7 +190,7 @@ const RecipeDetails = () => {
                 <form onSubmit={handleAddComment} className="relative group">
                     <Textarea 
                         placeholder="Споделете вашето мнение за тази рецепта..." 
-                        className="rounded-[2rem] p-8 bg-white shadow-2xl border-none text-lg focus-visible:ring-2 focus-visible:ring-orange-500 min-h-[140px] transition-all"
+                        className="rounded-[2rem] p-8 bg-white shadow-2xl border-none text-lg focus-visible:ring-2 focus-visible:ring-orange-500 min-h-[140px] transition-all resize-none"
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                     />

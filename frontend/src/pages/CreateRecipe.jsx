@@ -9,7 +9,6 @@ import { Card } from "@/components/ui/card";
 import { Plus, Trash2, Upload, Loader2, Image as ImageIcon, Video, X, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const categoriesLoader = async () => {
     const res = await api.get('/categories');
@@ -94,6 +93,25 @@ const CreateRecipe = () => {
         finally { setLoading(false); }
     };
 
+    const renderBadges = (items, currentField) => (
+        <div className="flex flex-wrap gap-2">
+            {items.map((item) => (
+                <button
+                    key={item._id}
+                    type="button"
+                    onClick={() => setCategory({ ...category, [currentField]: item.name })}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                        category[currentField] === item.name
+                            ? "bg-orange-500 text-white shadow-md shadow-orange-200"
+                            : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                    }`}
+                >
+                    {item.name}
+                </button>
+            ))}
+        </div>
+    );
+
     return (
         <div className="max-w-5xl mx-auto py-12 px-4">
             <h1 className="text-4xl font-black text-slate-950 mb-10 tracking-tight">Нова рецепта</h1>
@@ -101,43 +119,28 @@ const CreateRecipe = () => {
             <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 <div className="lg:col-span-2 space-y-8">
                     <div onClick={() => document.getElementById('main-upload').click()} className="relative h-96 bg-slate-50 rounded-[2.5rem] border-4 border-dashed border-slate-200 overflow-hidden cursor-pointer hover:border-orange-500 transition-all flex items-center justify-center shadow-inner">
-                        {mainImage ? <img src={mainImage} className="w-full h-full object-cover" /> : <div className="text-center text-slate-400"><ImageIcon size={60} className="mx-auto mb-4" /><p className="font-bold text-lg text-muted-foreground">Кликнете за основна снимка</p></div>}
+                        {mainImage ? <img src={mainImage} className="w-full h-full object-cover" /> : <div className="text-center text-slate-400"><ImageIcon size={60} className="mx-auto mb-4" /><p className="font-bold text-lg">Кликнете за основна снимка</p></div>}
                         <input id="main-upload" type="file" className="hidden" onChange={(e) => handleImageUpload(e.target.files[0], setMainImage)} />
                     </div>
 
                     <Card className="p-10 space-y-8 border-none shadow-xl rounded-[2.5rem] bg-white">
-                        <div className="space-y-3 w-full">
+                        <div className="space-y-3 max-w-md">
                             <Label className="text-lg font-bold ml-1 text-slate-800">Име на ястието</Label>
-                            <Input className="rounded-xl bg-slate-50 border-none h-14 text-lg focus:ring-0" placeholder="Как се казва ястието?" value={title} onChange={(e) => setTitle(e.target.value)} />
+                            <Input className="rounded-xl bg-slate-50 border-none h-12 focus:ring-0" placeholder="Как се казва ястието?" value={title} onChange={(e) => setTitle(e.target.value)} />
                         </div>
                         
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="space-y-2">
+                        <div className="space-y-6">
+                            <div className="space-y-3">
                                 <Label className="text-xs font-black uppercase ml-1 text-slate-400">Кухня</Label>
-                                <Select value={category.cuisine} onValueChange={(val) => setCategory({...category, cuisine: val})}>
-                                    <SelectTrigger className="w-full rounded-xl bg-slate-50 border-none h-12 focus:ring-0"><SelectValue /></SelectTrigger>
-                                    <SelectContent className="bg-white">
-                                        {cuisines.map(v => <SelectItem key={v._id} value={v.name}>{v.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
+                                {renderBadges(cuisines, 'cuisine')}
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 <Label className="text-xs font-black uppercase ml-1 text-slate-400">Диета</Label>
-                                <Select value={category.diet} onValueChange={(val) => setCategory({...category, diet: val})}>
-                                    <SelectTrigger className="w-full rounded-xl bg-slate-50 border-none h-12 focus:ring-0"><SelectValue /></SelectTrigger>
-                                    <SelectContent className="bg-white">
-                                        {diets.map(v => <SelectItem key={v._id} value={v.name}>{v.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
+                                {renderBadges(diets, 'diet')}
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 <Label className="text-xs font-black uppercase ml-1 text-slate-400">Трудност</Label>
-                                <Select value={category.difficulty} onValueChange={(val) => setCategory({...category, difficulty: val})}>
-                                    <SelectTrigger className="w-full rounded-xl bg-slate-50 border-none h-12 focus:ring-0"><SelectValue /></SelectTrigger>
-                                    <SelectContent className="bg-white">
-                                        {difficulties.map(v => <SelectItem key={v._id} value={v.name}>{v.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
+                                {renderBadges(difficulties, 'difficulty')}
                             </div>
                         </div>
 
@@ -191,7 +194,7 @@ const CreateRecipe = () => {
                         </Button>
                     </Card>
 
-                    <Button type="submit" disabled={loading} className="w-full bg-orange-500 hover:bg-slate-950 text-white py-8 rounded-2xl font-bold text-xl shadow-lg transition-all">
+                    <Button type="submit" disabled={loading} className="w-full bg-orange-500 hover:bg-slate-950 text-white py-8 rounded-2xl font-bold text-xl shadow-lg transition-all flex items-center justify-center">
                         {loading ? <Loader2 className="animate-spin" /> : 'Публикувай рецептата'}
                     </Button>
                 </div>
