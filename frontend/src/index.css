@@ -20,18 +20,21 @@
 }
 
 html {
-  scrollbar-gutter: stable !important;
+  scrollbar-gutter: stable both-edges !important;
+  overflow-y: scroll !important;
 }
 
-body[data-scroll-locked] {
+body, body[data-scroll-locked] {
   padding-right: 0px !important;
   margin-right: 0px !important;
 }
 
-*:focus, *:focus-visible, [data-state="open"] {
+*:focus, *:focus-visible, [data-state="open"], button:focus {
   outline: none !important;
   box-shadow: none !important;
   ring: 0 !important;
+  --tw-ring-offset-width: 0px !important;
+  --tw-ring-width: 0px !important;
 }
 
 @keyframes toastIn {
@@ -43,5 +46,6 @@ body[data-scroll-locked] {
   top: 1.5rem !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
+  margin: 0 !important;
   animation: toastIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }

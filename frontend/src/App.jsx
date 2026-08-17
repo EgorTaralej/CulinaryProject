@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
@@ -10,13 +10,15 @@ import CreateRecipe, { categoriesLoader } from '@/pages/CreateRecipe';
 import { Toaster } from "@/components/ui/toaster";
 
 const Layout = () => {
+  const location = useLocation();
   return (
     <div className="min-h-screen bg-white font-sans text-slate-950">
       <Navbar />
       <main className="container mx-auto px-4 py-6">
-        <Outlet />
+        <Outlet key={location.key} />
       </main>
       <Toaster />
+      <ScrollRestoration />
     </div>
   );
 };

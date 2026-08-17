@@ -22,7 +22,8 @@ const RecipeDetails = () => {
     const { user } = useContext(AuthContext);
     
     const [newComment, setNewComment] = useState('');
-    const [userRating, setUserRating] = useState(0);
+    const existingRating = recipe.ratings?.find(r => (r.user._id || r.user) === user?.id);
+    const [userRating, setUserRating] = useState(existingRating?.stars || 0);
     const isAuthor = user?.id === recipe.author._id;
 
     const handleAddComment = async (e) => {
@@ -60,10 +61,6 @@ const RecipeDetails = () => {
 
     return (
         <div className="max-w-5xl mx-auto py-10 px-4">
-            <Link to="/" className="flex items-center gap-2 text-slate-400 hover:text-orange-500 mb-8 font-bold transition-colors w-fit">
-                <ChevronLeft size={20} /> Назад към всички
-            </Link>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16 items-center">
                 <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-100">
                     {recipe.mainImage ? (
@@ -81,6 +78,7 @@ const RecipeDetails = () => {
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1 text-amber-500 font-black text-xl">
                                 <Star fill="currentColor" size={24} /> {recipe.averageRating.toFixed(1)}
+                                <span className="text-sm text-slate-400 font-bold ml-1">({recipe.ratings?.length || 0})</span>
                             </div>
                             <Separator orientation="vertical" className="h-6 bg-slate-200" />
                             <div className="flex items-center gap-2 text-slate-400 font-bold uppercase tracking-widest text-xs">

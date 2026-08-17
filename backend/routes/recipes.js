@@ -96,4 +96,39 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+router.get('/search/advanced', async (req, res) => {
+    try {
+        const { q, cuisine, diet, difficulty, include, exclude } = req.query;
+        let query = {};
+
+        const getStem = (word) => word.trim().toLowerCase().replace(/[еаия]$/, '');
+
+        if (q) {
+            const stem = getStem(q);
+            query.$or = [
+                { title: { $regex: stem, $options: 'i' } },
+                { ingredients: { $regex: stem, $options: 'i' } }
+            ];
+        }
+
+        if (cuisine && cuisine !== 'Всички') query['category.cuisine'] = cuisine;
+        if (diet && diet !== 'Всички') query['category.diet'] = diet;
+        if (difficulty && difficulty !== 'Всички') query['category.difficulty'] = difficulty;
+
+        if (include) {
+            const includeStems = include.split(',').map(s => new RegExp(getStem(s), 'i'));
+            query.ingredients = { ...query.ingredients, $all: includeStems };
+        }
+
+        if (exclude) {
+            const excludeStems = exclude.split(',').map(s => new RegExp(getStem(s), 'i'));
+            query.ingredients = { ...query.ingredients, $nin: excludeStems };
+        }
+
+        const recipes = await Recipe.find(query).populate('author', ['username']).sort({ createdAt: -1 });
+        res.json(recipes);
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
 module.exports = router;
