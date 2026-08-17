@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Star, ChevronLeft, Send, PlayCircle } from 'lucide-react';
+import { Star, ChevronLeft, Send, PlayCircle, User, Utensils } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
 
 export const recipeLoader = async ({ params }) => {
     const res = await api.get(`/recipes/${params.id}`);
@@ -18,6 +19,7 @@ const RecipeDetails = () => {
     const { recipe, comments } = useLoaderData();
     const { toast } = useToast();
     const revalidator = useRevalidator();
+    const { user } = useContext(AuthContext);
     const [newComment, setNewComment] = useState('');
 
     const handleAddComment = async (e) => {
@@ -26,10 +28,10 @@ const RecipeDetails = () => {
         try {
             await api.post(`/recipes/${recipe._id}/comment`, { text: newComment });
             setNewComment('');
-            revalidator.revalidate(); // Опреснява данните магически
+            revalidator.revalidate(); 
             toast({ title: "Коментарът е добавен!" });
         } catch (err) {
-            toast({ variant: "destructive", title: "Грешка" });
+            toast({ variant: "destructive", title: "Грешка при изпращане" });
         }
     };
 
@@ -42,50 +44,102 @@ const RecipeDetails = () => {
     const videoId = getYoutubeId(recipe.videoUrl);
 
     return (
-        <div className="max-w-4xl mx-auto py-10">
-            <Link to="/" className="flex items-center gap-2 text-slate-400 hover:text-red-600 mb-8 font-bold transition-colors">
-                <ChevronLeft size={20} /> Назад
+        <div className="max-w-5xl mx-auto py-10 px-4">
+            <Link to="/" className="flex items-center gap-2 text-slate-400 hover:text-orange-500 mb-8 font-bold transition-colors w-fit">
+                <ChevronLeft size={20} /> Назад към всички
             </Link>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
-                <div className="aspect-square rounded-[2.5rem] overflow-hidden shadow-xl">
-                    <img src={recipe.mainImage} className="w-full h-full object-cover" alt={recipe.title} />
-                </div>
-                <div className="flex flex-col justify-center space-y-6">
-                    <h1 className="text-5xl font-black">{recipe.title}</h1>
-                    <div className="flex items-center gap-2 text-amber-500 font-bold text-xl">
-                        <Star fill="currentColor" /> {recipe.averageRating.toFixed(1)}
-                    </div>
-                    <p className="text-xl text-slate-500 italic">"{recipe.description}"</p>
-                    <div className="text-slate-400 font-bold uppercase tracking-widest text-sm">Автор: {recipe.author.username}</div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-20">
-                <div className="lg:col-span-2 space-y-12">
-                    <h2 className="text-3xl font-black">Инструкции</h2>
-                    {recipe.steps.map((step, i) => (
-                        <div key={i} className="space-y-4">
-                            <div className="flex items-center gap-4">
-                                <span className="w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center font-black">{i+1}</span>
-                                <p className="text-xl text-slate-700">{step.text}</p>
-                            </div>
-                            {step.image && <img src={step.image} className="w-full rounded-3xl shadow-md border-4 border-white" />}
-                        </div>
-                    ))}
-                    {videoId && (
-                        <div className="aspect-video rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
-                            <iframe className="w-full h-full" src={`https://www.youtube.com/embed/${videoId}`} allowFullScreen></iframe>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16 items-center">
+                <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-100">
+                    {recipe.mainImage ? (
+                        <img src={recipe.mainImage} className="w-full h-full object-cover" alt={recipe.title} />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold">
+                            Няма снимка
                         </div>
                     )}
                 </div>
-                <div>
-                    <Card className="p-8 rounded-[2rem] shadow-lg border-none sticky top-24">
-                        <h3 className="text-2xl font-black mb-6">Съставки</h3>
-                        <ul className="space-y-4">
+
+                <div className="flex flex-col space-y-6">
+                    <div className="space-y-2">
+                        <h1 className="text-5xl font-black text-slate-950 leading-tight">{recipe.title}</h1>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1 text-amber-500 font-black text-xl">
+                                <Star fill="currentColor" size={24} /> {recipe.averageRating.toFixed(1)}
+                            </div>
+                            <Separator orientation="vertical" className="h-6 bg-slate-200" />
+                            <div className="flex items-center gap-2 text-slate-400 font-bold uppercase tracking-widest text-xs">
+                                <User size={16} className="text-orange-500" /> {recipe.author.username}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p className="text-xl text-slate-500 leading-relaxed border-l-4 border-orange-400 pl-6">
+                        {recipe.description}
+                    </p>
+
+                    <div className="flex gap-3">
+                        <div className="px-4 py-2 bg-slate-100 rounded-full text-xs font-black text-slate-600 uppercase tracking-wider">
+                            {recipe.category?.cuisine}
+                        </div>
+                        <div className="px-4 py-2 bg-orange-50 rounded-full text-xs font-black text-orange-600 uppercase tracking-wider">
+                            {recipe.category?.difficulty}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 mb-20">
+                <div className="lg:col-span-2 space-y-12">
+                    <h2 className="text-3xl font-black text-slate-900 flex items-center gap-3">
+                        <Utensils className="text-orange-500" /> Инструкции
+                    </h2>
+                    
+                    <div className="space-y-10">
+                        {recipe.steps.map((step, i) => (
+                            <div key={i} className="relative pl-14 space-y-6">
+                                <div className="absolute left-0 top-0 w-10 h-10 bg-slate-950 text-white rounded-2xl flex items-center justify-center font-black text-lg shadow-lg">
+                                    {i + 1}
+                                </div>
+                                <div className="space-y-4">
+                                    <p className="text-xl text-slate-700 leading-relaxed font-medium">{step.text}</p>
+                                    {step.image && (
+                                        <div className="rounded-[2rem] overflow-hidden border-4 border-white shadow-xl max-w-lg">
+                                            <img src={step.image} className="w-full object-cover" alt={`Стъпка ${i + 1}`} />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {videoId && (
+                        <div className="pt-10 space-y-6">
+                            <h3 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                                <PlayCircle className="text-orange-500" /> Видео урок
+                            </h3>
+                            <div className="aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white">
+                                <iframe 
+                                    className="w-full h-full" 
+                                    src={`https://www.youtube.com/embed/${videoId}`} 
+                                    allowFullScreen
+                                    title="Recipe Video"
+                                ></iframe>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="relative">
+                    <Card className="p-8 rounded-[2.5rem] shadow-xl border-none bg-white sticky top-24">
+                        <h3 className="text-2xl font-black text-slate-900 mb-8 border-b-4 border-orange-500 pb-2 w-fit">
+                            Съставки
+                        </h3>
+                        <ul className="space-y-5">
                             {recipe.ingredients.map((ing, i) => (
-                                <li key={i} className="text-lg text-slate-600 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full" /> {ing}
+                                <li key={i} className="text-lg text-slate-600 flex items-start gap-3 group">
+                                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2.5 group-hover:scale-150 transition-transform" />
+                                    <span className="font-medium">{ing}</span>
                                 </li>
                             ))}
                         </ul>
@@ -93,26 +147,39 @@ const RecipeDetails = () => {
                 </div>
             </div>
 
-            <div className="max-w-2xl space-y-8">
-                <h2 className="text-3xl font-black">Коментари</h2>
-                <form onSubmit={handleAddComment} className="relative">
+            <Separator className="my-16 bg-slate-100" />
+
+            <div className="max-w-3xl mx-auto space-y-12">
+                <h2 className="text-3xl font-black text-slate-900">Коментари <span className="text-orange-500">({comments.length})</span></h2>
+                
+                <form onSubmit={handleAddComment} className="relative group">
                     <Textarea 
-                        placeholder="Напишете нещо..." 
-                        className="rounded-3xl p-6 bg-white shadow-lg border-none min-h-[100px]"
+                        placeholder="Споделете вашето мнение за тази рецепта..." 
+                        className="rounded-[2rem] p-8 bg-white shadow-2xl border-none text-lg focus-visible:ring-2 focus-visible:ring-orange-500 min-h-[140px] transition-all"
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                     />
-                    <Button type="submit" className="absolute bottom-4 right-4 bg-red-600 hover:bg-red-700 rounded-2xl w-12 h-12 p-0">
-                        <Send size={20} />
+                    <Button type="submit" className="absolute bottom-6 right-6 bg-orange-500 hover:bg-slate-950 text-white rounded-2xl w-14 h-14 p-0 shadow-lg shadow-orange-200 transition-all active:scale-90">
+                        <Send size={24} />
                     </Button>
                 </form>
-                <div className="space-y-4">
+
+                <div className="space-y-6">
                     {comments.map((c) => (
-                        <div key={c._id} className="bg-white p-6 rounded-3xl shadow-sm flex gap-4">
-                            <Avatar><AvatarFallback className="bg-red-100 text-red-600 font-bold">{c.author.username[0]}</AvatarFallback></Avatar>
-                            <div>
-                                <div className="font-black">{c.author.username}</div>
-                                <p className="text-slate-600">{c.text}</p>
+                        <div key={c._id} className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50 flex gap-6 hover:shadow-md transition-shadow">
+                            <Avatar className="w-14 h-14 border-4 border-orange-50">
+                                <AvatarFallback className="bg-orange-100 text-orange-600 font-black text-xl">
+                                    {c.author.username[0].toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3">
+                                    <div className="font-black text-slate-900 text-lg">{c.author.username}</div>
+                                    <div className="text-xs font-bold text-slate-300 uppercase tracking-tighter">
+                                        {new Date(c.createdAt).toLocaleDateString()}
+                                    </div>
+                                </div>
+                                <p className="text-slate-600 text-lg leading-relaxed">{c.text}</p>
                             </div>
                         </div>
                     ))}

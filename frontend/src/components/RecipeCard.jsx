@@ -21,7 +21,7 @@ const RecipeCard = ({ recipe }) => {
                     </div>
                 )}
                 <div className="absolute top-4 right-4">
-                    <Badge className="bg-white/90 text-red-600 hover:bg-white border-none backdrop-blur-sm font-bold">
+                    <Badge className="bg-white/90 text-orange-600 hover:bg-white border-none backdrop-blur-sm font-bold">
                         {recipe.category.difficulty}
                     </Badge>
                 </div>
@@ -41,7 +41,7 @@ const RecipeCard = ({ recipe }) => {
 
             <CardContent className="px-5 pt-0 pb-4">
                 <div className="flex items-center gap-2 text-slate-500 text-sm">
-                    <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                    <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-orange-600">
                         <User size={12} />
                     </div>
                     <span className="font-medium">{recipe.author?.username}</span>
@@ -49,7 +49,7 @@ const RecipeCard = ({ recipe }) => {
             </CardContent>
 
             <CardFooter className="p-5 pt-0">
-                <Button asChild className="w-full bg-slate-50 hover:bg-red-600 hover:text-white text-slate-700 border-none shadow-none rounded-xl font-bold transition-colors">
+                <Button asChild className="w-full bg-slate-50 hover:bg-orange-600 hover:text-white text-slate-700 border-none shadow-none rounded-xl font-bold transition-colors">
                     <Link to={`/recipe/${recipe._id}`} className="flex items-center justify-center gap-2">
                         Виж рецептата <ChevronRight size={16} />
                     </Link>

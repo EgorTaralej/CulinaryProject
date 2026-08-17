@@ -13,6 +13,7 @@ app.use('/api/recipes', require('./routes/recipes'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/upload', require('./routes/upload'));
+app.use('/api/categories', require('./routes/categories'));
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("Connected to MongoDB Atlas"))

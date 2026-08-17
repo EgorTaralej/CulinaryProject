@@ -6,14 +6,13 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Home, { homeLoader } from '@/pages/Home';
 import RecipeDetails, { recipeLoader } from '@/pages/RecipeDetails';
-import CreateRecipe from '@/pages/CreateRecipe';
+import CreateRecipe, { categoriesLoader } from '@/pages/CreateRecipe';
 import { Toaster } from "@/components/ui/toaster";
 
 const Layout = () => {
-  const { user } = useContext(AuthContext);
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
-      {user && <Navbar />}
+    <div className="min-h-screen bg-white font-sans text-slate-950">
+      <Navbar />
       <main className="container mx-auto px-4 py-6">
         <Outlet />
       </main>
@@ -32,17 +31,18 @@ function App() {
       children: [
         {
           index: true,
-          element: user ? <Home /> : <Navigate to="/login" />,
+          element: <Home />,
           loader: homeLoader
         },
         {
           path: "recipe/:id",
-          element: user ? <RecipeDetails /> : <Navigate to="/login" />,
+          element: <RecipeDetails />,
           loader: recipeLoader
         },
         {
           path: "create-recipe",
-          element: user ? <CreateRecipe /> : <Navigate to="/login" />
+          element: user ? <CreateRecipe /> : <Navigate to="/login" />,
+          loader: categoriesLoader
         },
         {
           path: "login",
@@ -51,7 +51,7 @@ function App() {
         {
           path: "register",
           element: !user ? <Register /> : <Navigate to="/" />
-        }
+        },
       ]
     }
   ]);

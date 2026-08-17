@@ -5,33 +5,43 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --foreground: 0 0% 3.9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 0 72.2% 50.6%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 0 72.2% 50.6%;
-    --radius: 0.75rem;
+    --popover-foreground: 0 0% 3.9%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --primary: 24.6 95% 53.1%;
+    --primary-foreground: 0 0% 98%;
+    --ring: 24.6 95% 53.1%;
+    --radius: 1.25rem;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+html {
+  scrollbar-gutter: stable !important;
+}
+
+body[data-scroll-locked] {
+  padding-right: 0px !important;
+  margin-right: 0px !important;
+}
+
+*:focus, *:focus-visible, [data-state="open"] {
+  outline: none !important;
+  box-shadow: none !important;
+  ring: 0 !important;
+}
+
+@keyframes toastIn {
+  from { transform: translate(-50%, -150%); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+.animate-toast-smooth {
+  position: fixed !important;
+  top: 1.5rem !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  animation: toastIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }

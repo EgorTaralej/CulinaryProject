@@ -32,7 +32,7 @@ const Register = () => {
 
     return (
         <div className="flex min-h-[80vh] items-center justify-center px-4">
-            <Card className="w-full max-w-md shadow-xl border-t-4 border-t-red-600">
+            <Card className="w-full max-w-md shadow-xl border-t-4 border-t-orange-600">
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-2xl font-bold text-center">Регистрация</CardTitle>
                     <CardDescription className="text-center">
@@ -43,40 +43,40 @@ const Register = () => {
                     <CardContent className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="username">Потребителско име</Label>
-                            <Input 
-                                id="username" 
-                                type="text" 
-                                placeholder="ChefEgor" 
-                                onChange={(e) => setFormData({...formData, username: e.target.value})} 
-                                required 
+                            <Input
+                                id="username"
+                                type="text"
+                                autoComplete="off"
+                                placeholder="ChefEgor"
+                                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                             />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="email">Имейл</Label>
-                            <Input 
-                                id="email" 
-                                type="email" 
-                                placeholder="name@example.com" 
-                                onChange={(e) => setFormData({...formData, email: e.target.value})} 
-                                required 
+                            <Input
+                                id="email"
+                                type="email"
+                                autoComplete="email"
+                                placeholder="name@example.com"
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="password">Парола</Label>
-                            <Input 
-                                id="password" 
-                                type="password" 
-                                onChange={(e) => setFormData({...formData, password: e.target.value})} 
-                                required 
+                            <Input
+                                id="password"
+                                type="password"
+                                autoComplete="new-password"
+                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             />
                         </div>
                     </CardContent>
                     <CardFooter className="flex flex-col gap-4">
-                        <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6 rounded-xl">
+                        <Button type="submit" className="w-full bg-orange-600 hover:bg-red-700 text-white font-bold py-6 rounded-xl">
                             Регистрирай се
                         </Button>
                         <p className="text-sm text-center text-muted-foreground">
-                            Вече имате профил? <Link to="/login" className="text-red-600 font-bold hover:underline">Влезте тук</Link>
+                            Вече имате профил? <Link to="/login" className="text-orange-600 font-bold hover:underline">Влезте тук</Link>
                         </p>
                     </CardFooter>
                 </form>
