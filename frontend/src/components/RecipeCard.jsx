@@ -1,13 +1,13 @@
-import { Star, User, ChevronRight } from 'lucide-react';
+import { Star, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const RecipeCard = ({ recipe }) => {
     return (
         <Card className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300 rounded-3xl bg-white">
-            {/* Снимка */}
             <div className="relative h-52 overflow-hidden">
                 {recipe.mainImage ? (
                     <img 
@@ -40,12 +40,13 @@ const RecipeCard = ({ recipe }) => {
             </CardHeader>
 
             <CardContent className="px-5 pt-0 pb-4">
-                <div className="flex items-center gap-2 text-slate-500 text-sm">
-                    <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-orange-600">
-                        <User size={12} />
-                    </div>
-                    <span className="font-medium">{recipe.author?.username}</span>
-                </div>
+                <Link to={`/profile/${recipe.author._id}`} className="flex items-center gap-2 text-slate-500 text-sm hover:text-orange-500 transition-colors w-fit">
+                    <Avatar className="w-6 h-6 border border-slate-100">
+                        <AvatarImage src={recipe.author.profileImage} />
+                        <AvatarFallback className="text-[10px] bg-orange-100 text-orange-600">{recipe.author.username[0]}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-bold">{recipe.author?.username}</span>
+                </Link>
             </CardContent>
 
             <CardFooter className="p-5 pt-0">

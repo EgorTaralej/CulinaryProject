@@ -20,7 +20,7 @@
 }
 
 html {
-  scrollbar-gutter: stable both-edges !important;
+  scrollbar-gutter: stable !important;
   overflow-y: scroll !important;
 }
 

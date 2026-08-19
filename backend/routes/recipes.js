@@ -9,7 +9,7 @@ const Report = require('../models/Report');
 router.get('/', async (req, res) => {
     try {
         const recipes = await Recipe.find()
-            .populate('author', ['username'])
+            .populate('author', ['username', 'profileImage'])
             .sort({ createdAt: -1 });
         res.json(recipes);
     } catch (err) {
@@ -71,7 +71,7 @@ router.post('/:id/comment', auth, async (req, res) => {
         });
 
         await newComment.save();
-        const populated = await Comment.findById(newComment._id).populate('author', ['username']);
+        const populated = await Comment.findById(newComment._id).populate('author', ['username', 'profileImage']);
         res.status(201).json(populated);
     } catch (err) {
         console.error("Error in POST /comment:", err.message);
@@ -81,11 +81,11 @@ router.post('/:id/comment', auth, async (req, res) => {
 
 router.get('/:id', async (req, res) => {
     try {
-        const recipe = await Recipe.findById(req.params.id).populate('author', ['username']);
+        const recipe = await Recipe.findById(req.params.id).populate('author', ['username', 'profileImage']);
         if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
         const comments = await Comment.find({ recipe: req.params.id })
-            .populate('author', ['username'])
+            .populate('author', ['username', 'profileImage'])
             .sort({ createdAt: -1 });
 
         res.json({ recipe, comments });
@@ -125,7 +125,7 @@ router.get('/search/advanced', async (req, res) => {
             query.ingredients = { ...query.ingredients, $nin: excludeStems };
         }
 
-        const recipes = await Recipe.find(query).populate('author', ['username']).sort({ createdAt: -1 });
+        const recipes = await Recipe.find(query).populate('author', ['username', 'profileImage']).sort({ createdAt: -1 });
         res.json(recipes);
     } catch (err) {
         res.status(500).send('Server Error');

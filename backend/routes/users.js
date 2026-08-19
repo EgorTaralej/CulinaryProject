@@ -2,6 +2,64 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const User = require('../models/User');
+const Recipe = require('../models/Recipe');
+
+router.get('/me', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id)
+            .select('-password')
+            .populate('followers', 'username profileImage')
+            .populate('following', 'username profileImage')
+            .populate({
+                path: 'favorites',
+                populate: { path: 'author', select: 'username profileImage' }
+            });
+
+        const myRecipes = await Recipe.find({ author: req.user.id })
+            .populate('author', ['username', 'profileImage']);
+        
+        res.json({ user, myRecipes });
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
+
+router.get('/:id', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+            .select('-password')
+            .populate('followers', 'username profileImage')
+            .populate('following', 'username profileImage')
+            .populate({
+                path: 'favorites',
+                populate: { path: 'author', select: 'username profileImage' }
+            });
+
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const recipes = await Recipe.find({ author: req.params.id })
+            .populate('author', ['username', 'profileImage']);
+        
+        res.json({ user, recipes });
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
+
+router.put('/update', auth, async (req, res) => {
+    try {
+        const { bio, profileImage } = req.body;
+        const user = await User.findById(req.user.id);
+
+        if (bio !== undefined) user.bio = bio;
+        if (profileImage !== undefined) user.profileImage = profileImage;
+
+        await user.save();
+        res.json(user);
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
 
 router.put('/follow/:id', auth, async (req, res) => {
     try {

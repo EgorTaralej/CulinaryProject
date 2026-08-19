@@ -69,12 +69,12 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
                 
                 <Button 
                     onClick={() => setShowFilters(!showFilters)}
-                    className={`h-16 px-6 rounded-2xl transition-all border-none bg-white text-slate-600 shadow-2xl hover:bg-slate-50`}
+                    className={`h-16 px-6 rounded-2xl transition-all border-none bg-white text-slate-600 shadow-xl hover:bg-slate-50 active:translate-y-0`}
                 >
                     <SlidersHorizontal size={24} />
                 </Button>
 
-                <div className="relative flex-1 h-16 bg-white rounded-2xl shadow-2xl flex items-center px-5 border-none">
+                <div className="relative flex-1 h-16 bg-white rounded-2xl shadow-xl flex items-center px-5 border-none">
                     <SearchIcon className="text-slate-400 mr-3" size={20} />
                     <Input 
                         placeholder="Търси по име или съставка..."
@@ -88,7 +88,7 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
                 <Button 
                     onClick={() => onSearch({ ...localFilters, query: searchQuery })}
                     disabled={loading}
-                    className="h-16 px-8 rounded-2xl bg-orange-500 hover:bg-slate-950 text-white font-bold text-lg shadow-2xl transition-all border-none"
+                    className="h-16 px-8 rounded-2xl bg-orange-500 hover:bg-slate-950 text-white font-black text-lg shadow-[0_10px_25px_-5px_rgba(249,115,22,0.4)] transition-all border-none active:translate-y-0"
                 >
                     {loading ? <Loader2 className="animate-spin mr-2" /> : 'Търси'}
                 </Button>

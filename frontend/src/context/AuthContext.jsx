@@ -17,6 +17,16 @@ export const AuthProvider = ({ children }) => {
         return res.data;
     };
 
+    const refreshUser = async () => {
+        try {
+            const res = await api.get('/users/me');
+            localStorage.setItem('user', JSON.stringify(res.data.user));
+            setUser(res.data.user);
+        } catch (err) {
+            console.error("Failed to refresh user data");
+        }
+    };
+
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -24,7 +34,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, login, logout, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );
