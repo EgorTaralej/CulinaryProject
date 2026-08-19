@@ -26,6 +26,18 @@ const recipeSchema = new mongoose.Schema({
         diet: { type: String, required: true },
         difficulty: { type: String, required: true }
     },
+    prepTime: {
+        type: String,
+        default: ""
+    },
+    cookTime: {
+        type: String,
+        default: ""
+    },
+    servings: {
+        type: String,
+        default: ""
+    },
     videoUrl: {
         type: String,
         default: ""
@@ -34,6 +46,11 @@ const recipeSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
     },
     ratings: [{
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

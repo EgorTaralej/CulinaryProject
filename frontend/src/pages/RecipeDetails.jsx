@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Star, Send, PlayCircle, User, Utensils, Heart } from 'lucide-react';
+import { Star, Send, PlayCircle, User, Utensils, Heart, Clock, Users } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 
@@ -116,6 +116,29 @@ const RecipeDetails = () => {
                     <div className="flex gap-3">
                         <div className="px-4 py-2 bg-slate-100 rounded-full text-xs font-black text-slate-600 uppercase">{recipe.category?.cuisine}</div>
                         <div className="px-4 py-2 bg-orange-50 rounded-full text-xs font-black text-orange-600 uppercase">{recipe.category?.difficulty}</div>
+                    </div>
+
+                    <div className="bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                            <div className="space-y-1">
+                                <p className="text-slate-900 font-black text-sm uppercase tracking-tight flex items-center gap-1.5">
+                                    <Clock size={16} className="text-orange-500"/> Подготовка
+                                </p>
+                                <p className="text-slate-500 font-bold text-lg">{recipe.prepTime || "0"} мин.</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-slate-900 font-black text-sm uppercase tracking-tight flex items-center gap-1.5">
+                                    <Clock size={16} className="text-orange-500"/> Готвене
+                                </p>
+                                <p className="text-slate-500 font-bold text-lg">{recipe.cookTime || "0"} мин.</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-slate-900 font-black text-sm uppercase tracking-tight flex items-center gap-1.5">
+                                    <Users size={16} className="text-orange-500"/> Порции
+                                </p>
+                                <p className="text-slate-500 font-bold text-lg">{recipe.servings || "1"}</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="pt-4 border-t border-slate-100">

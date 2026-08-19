@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Plus, Trash2, Upload, Loader2, Image as ImageIcon, Video, X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Upload, Loader2, Image as ImageIcon, Video, X, CheckCircle2, AlertCircle, Clock, Users } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 
@@ -30,6 +30,10 @@ const CreateRecipe = () => {
     const [ingredients, setIngredients] = useState(['']);
     const [steps, setSteps] = useState([{ text: '', image: '' }]);
     const [videoUrl, setVideoUrl] = useState('');
+    
+    const [prepTime, setPrepTime] = useState('');
+    const [cookTime, setCookTime] = useState('');
+    const [servings, setServings] = useState('');
 
     const cuisines = allCategories.filter(c => c.type === 'cuisine');
     const diets = allCategories.filter(c => c.type === 'diet');
@@ -86,7 +90,18 @@ const CreateRecipe = () => {
 
         setLoading(true);
         try {
-            await api.post('/recipes', { title, description, mainImage, ingredients, steps, category, videoUrl });
+            await api.post('/recipes', { 
+                title, 
+                description, 
+                mainImage, 
+                ingredients, 
+                steps, 
+                category, 
+                videoUrl,
+                prepTime,
+                cookTime,
+                servings
+            });
             toast({ title: "Рецептата е споделена!" });
             navigate('/');
         } catch (err) { toast({ variant: "destructive", title: "Грешка при запис" }); }
@@ -127,6 +142,45 @@ const CreateRecipe = () => {
                         <div className="space-y-3 max-w-md">
                             <Label className="text-lg font-bold ml-1 text-slate-800">Име на ястието</Label>
                             <Input className="rounded-xl bg-slate-50 border-none h-12 focus:ring-0" placeholder="Как се казва ястието?" value={title} onChange={(e) => setTitle(e.target.value)} />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-2">
+                                <Label className="text-slate-400 font-black uppercase text-[10px] tracking-widest ml-1 flex items-center gap-1.5">
+                                    <Clock size={12} /> Подготовка (мин.)
+                                </Label>
+                                <Input 
+                                    type="text" 
+                                    placeholder="напр. 20" 
+                                    className="rounded-xl bg-slate-50 border-none h-12"
+                                    value={prepTime} 
+                                    onChange={(e) => setPrepTime(e.target.value)} 
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-slate-400 font-black uppercase text-[10px] tracking-widest ml-1 flex items-center gap-1.5">
+                                    <Clock size={12} /> Готвене (мин.)
+                                </Label>
+                                <Input 
+                                    type="text" 
+                                    placeholder="напр. 45" 
+                                    className="rounded-xl bg-slate-50 border-none h-12"
+                                    value={cookTime} 
+                                    onChange={(e) => setCookTime(e.target.value)} 
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-slate-400 font-black uppercase text-[10px] tracking-widest ml-1 flex items-center gap-1.5">
+                                    <Users size={12} /> Порции
+                                </Label>
+                                <Input 
+                                    type="text" 
+                                    placeholder="напр. 4" 
+                                    className="rounded-xl bg-slate-50 border-none h-12"
+                                    value={servings} 
+                                    onChange={(e) => setServings(e.target.value)} 
+                                />
+                            </div>
                         </div>
                         
                         <div className="space-y-6">
