@@ -8,7 +8,7 @@ const Report = require('../models/Report');
 
 router.get('/', async (req, res) => {
     try {
-        const recipes = await Recipe.find()
+        const recipes = await Recipe.find({ status: 'approved' })
             .populate('author', ['username', 'profileImage'])
             .sort({ createdAt: -1 });
         res.json(recipes);
@@ -18,25 +18,78 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', auth, async (req, res) => {
+router.get('/search/advanced', async (req, res) => {
     try {
-        const { title, description, mainImage, ingredients, steps, category, videoUrl } = req.body;
+        const { q, cuisine, diet, difficulty, include, exclude } = req.query;
+        let query = { status: 'approved' };
 
-        const newRecipe = new Recipe({
-            title,
-            description,
-            mainImage,
-            ingredients,
-            steps,
-            category,
-            videoUrl,
-            author: req.user.id
+        const getStem = (word) => word.trim().toLowerCase().replace(/[еаия]$/, '');
+
+        if (q) {
+            const stem = getStem(q);
+            query.$or = [
+                { title: { $regex: stem, $options: 'i' } },
+                { ingredients: { $regex: stem, $options: 'i' } }
+            ];
+        }
+
+        if (cuisine && cuisine !== 'Всички') query['category.cuisine'] = cuisine;
+        if (diet && diet !== 'Всички') query['category.diet'] = diet;
+        if (difficulty && difficulty !== 'Всички') query['category.difficulty'] = difficulty;
+
+        if (include) {
+            const includeStems = include.split(',').map(s => new RegExp(getStem(s), 'i'));
+            query.ingredients = { ...query.ingredients, $all: includeStems };
+        }
+
+        if (exclude) {
+            const excludeStems = exclude.split(',').map(s => new RegExp(getStem(s), 'i'));
+            query.ingredients = { ...query.ingredients, $nin: excludeStems };
+        }
+
+        const recipes = await Recipe.find(query)
+            .populate('author', ['username', 'profileImage'])
+            .sort({ createdAt: -1 });
+        res.json(recipes);
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
+
+router.post('/:id/report', auth, async (req, res) => {
+    try {
+        const { reason } = req.body;
+
+        const newReport = new Report({
+            recipe: req.params.id,
+            reporter: req.user.id,
+            reason: reason || "Потребителски сигнал",
+            status: 'pending'
         });
 
-        const recipe = await newRecipe.save();
-        res.status(201).json(recipe);
+        await newReport.save();
+
+        await Recipe.findByIdAndUpdate(req.params.id, { isReported: true });
+
+        res.status(201).json({ message: "Сигналът е приет" });
     } catch (err) {
-        console.error("err.message");
+        res.status(500).send('Server Error');
+    }
+});
+
+router.get('/:id', async (req, res) => {
+    try {
+        const recipe = await Recipe.findById(req.params.id).populate('author', ['username', 'profileImage']);
+        if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+
+        const comments = await Comment.find({ recipe: req.params.id })
+            .populate('author', ['username', 'profileImage'])
+            .sort({ createdAt: -1 });
+
+        res.json({ recipe, comments });
+    } catch (err) {
+        console.error("Error in GET /:id:", err.message);
+        if (err.kind === 'ObjectId') return res.status(404).json({ message: "Invalid ID" });
         res.status(500).send('Server Error');
     }
 });
@@ -79,56 +132,31 @@ router.post('/:id/comment', auth, async (req, res) => {
     }
 });
 
-router.get('/:id', async (req, res) => {
+router.post('/', auth, async (req, res) => {
     try {
-        const recipe = await Recipe.findById(req.params.id).populate('author', ['username', 'profileImage']);
-        if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+        const { title, description, mainImage, ingredients, steps, category, videoUrl, prepTime, cookTime, servings } = req.body;
 
-        const comments = await Comment.find({ recipe: req.params.id })
-            .populate('author', ['username', 'profileImage'])
-            .sort({ createdAt: -1 });
+        const newRecipe = new Recipe({
+            title,
+            description,
+            mainImage,
+            ingredients,
+            steps,
+            category,
+            videoUrl,
+            prepTime,
+            cookTime,
+            servings,
+            author: req.user.id,
+            status: 'pending'
+        });
 
-        res.json({ recipe, comments });
+        const recipe = await newRecipe.save();
+        res.status(201).json(recipe);
     } catch (err) {
-        console.error("Error in GET /:id:", err.message);
-        if (err.kind === 'ObjectId') return res.status(404).json({ message: "Invalid ID" });
+        console.error(err.message);
         res.status(500).send('Server Error');
     }
 });
 
-router.get('/search/advanced', async (req, res) => {
-    try {
-        const { q, cuisine, diet, difficulty, include, exclude } = req.query;
-        let query = {};
-
-        const getStem = (word) => word.trim().toLowerCase().replace(/[еаия]$/, '');
-
-        if (q) {
-            const stem = getStem(q);
-            query.$or = [
-                { title: { $regex: stem, $options: 'i' } },
-                { ingredients: { $regex: stem, $options: 'i' } }
-            ];
-        }
-
-        if (cuisine && cuisine !== 'Всички') query['category.cuisine'] = cuisine;
-        if (diet && diet !== 'Всички') query['category.diet'] = diet;
-        if (difficulty && difficulty !== 'Всички') query['category.difficulty'] = difficulty;
-
-        if (include) {
-            const includeStems = include.split(',').map(s => new RegExp(getStem(s), 'i'));
-            query.ingredients = { ...query.ingredients, $all: includeStems };
-        }
-
-        if (exclude) {
-            const excludeStems = exclude.split(',').map(s => new RegExp(getStem(s), 'i'));
-            query.ingredients = { ...query.ingredients, $nin: excludeStems };
-        }
-
-        const recipes = await Recipe.find(query).populate('author', ['username', 'profileImage']).sort({ createdAt: -1 });
-        res.json(recipes);
-    } catch (err) {
-        res.status(500).send('Server Error');
-    }
-});
 module.exports = router;
