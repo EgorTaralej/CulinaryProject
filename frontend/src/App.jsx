@@ -8,6 +8,7 @@ import Home, { homeLoader } from '@/pages/Home';
 import RecipeDetails, { recipeLoader } from '@/pages/RecipeDetails';
 import CreateRecipe, { categoriesLoader } from '@/pages/CreateRecipe';
 import Profile, { profileLoader } from '@/pages/Profile';
+import AdminDashboard, { adminLoader } from '@/pages/AdminDashboard'; // Импорт на лоудъра
 import { Toaster } from "@/components/ui/toaster";
 
 const Layout = () => {
@@ -33,6 +34,12 @@ function PublicRoute({ children }) {
 function ProtectedRoute({ children }) {
   const { user } = useContext(AuthContext);
   if (!user) return <Navigate to="/login" />;
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const { user } = useContext(AuthContext);
+  if (!user || user.role !== 'admin') return <Navigate to="/" />;
   return children;
 }
 
@@ -68,6 +75,11 @@ const router = createBrowserRouter([
       {
         path: "register",
         element: <PublicRoute><Register /></PublicRoute>
+      },
+      {
+        path: "admin",
+        element: <AdminRoute><AdminDashboard /></AdminRoute>,
+        loader: adminLoader
       },
     ]
   }

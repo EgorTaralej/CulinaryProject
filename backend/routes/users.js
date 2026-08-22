@@ -16,8 +16,9 @@ router.get('/me', auth, async (req, res) => {
             });
 
         const myRecipes = await Recipe.find({ author: req.user.id })
-            .populate('author', ['username', 'profileImage']);
-        
+            .populate('author', ['username', 'profileImage'])
+            .sort({ createdAt: -1 });
+
         res.json({ user, myRecipes });
     } catch (err) {
         res.status(500).send('Server Error');
@@ -37,9 +38,13 @@ router.get('/:id', auth, async (req, res) => {
 
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        const recipes = await Recipe.find({ author: req.params.id })
-            .populate('author', ['username', 'profileImage']);
-        
+        const recipes = await Recipe.find({
+            author: req.params.id,
+            status: 'approved'
+        })
+            .populate('author', ['username', 'profileImage'])
+            .sort({ createdAt: -1 });
+
         res.json({ user, recipes });
     } catch (err) {
         res.status(500).send('Server Error');
@@ -67,7 +72,7 @@ router.put('/follow/:id', auth, async (req, res) => {
         const currentUser = await User.findById(req.user.id);
 
         if (!userToFollow) return res.status(404).json({ message: "User not found" });
-        
+
         if (req.params.id === req.user.id) {
             return res.status(400).json({ message: "You cannot follow yourself" });
         }
@@ -75,7 +80,7 @@ router.put('/follow/:id', auth, async (req, res) => {
         if (currentUser.following.includes(req.params.id)) {
             currentUser.following = currentUser.following.filter(id => id.toString() !== req.params.id);
             userToFollow.followers = userToFollow.followers.filter(id => id.toString() !== req.user.id);
-            
+
             await currentUser.save();
             await userToFollow.save();
             return res.json({ message: "Unfollowed successfully" });
@@ -97,7 +102,7 @@ router.put('/follow/:id', auth, async (req, res) => {
 router.put('/favorite/:recipeId', auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
-        
+
         if (user.favorites.includes(req.params.recipeId)) {
             user.favorites = user.favorites.filter(id => id.toString() !== req.params.recipeId);
             await user.save();

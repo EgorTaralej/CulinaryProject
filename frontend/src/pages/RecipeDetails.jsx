@@ -34,6 +34,12 @@ const RecipeDetails = () => {
         return user?.favorites?.some(fav => (fav._id || fav) === recipe._id);
     }, [user?.favorites, recipe._id]);
 
+    const publishDate = new Date(recipe.createdAt).toLocaleDateString('bg-BG', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+
     const handleToggleFavorite = async () => {
         try {
             await api.put(`/users/favorite/${recipe._id}`);
@@ -115,6 +121,10 @@ const RecipeDetails = () => {
                             </Avatar>
                             {recipe.author.username}
                         </Link>
+                        <Separator orientation="vertical" className="h-6 bg-slate-200" />
+                        <span className="text-slate-400 font-bold uppercase tracking-widest text-[12px]">
+                            {publishDate}
+                        </span>
                     </div>
                     
                     <p className="text-xl text-slate-500 leading-relaxed border-l-4 border-orange-400 pl-6">{recipe.description}</p>

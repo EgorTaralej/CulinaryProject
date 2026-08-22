@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '@/context/AuthContext';
-import { LogOut, PlusSquare, User, Home } from 'lucide-react'; // Добавен Home
+import { LogOut, PlusSquare, User, Home, ShieldCheck } from 'lucide-react'; // Добавен ShieldCheck
 
 const Navbar = () => {
     const { user, logout } = useContext(AuthContext);
@@ -22,13 +22,19 @@ const Navbar = () => {
 
                     {user ? (
                         <>
+                            {user.role === 'admin' && (
+                                <Link to="/admin" className="flex items-center gap-1.5 text-red-500 hover:text-red-700 transition-colors font-black uppercase text-xs tracking-widest">
+                                    <ShieldCheck size={18} /> <span>Админ Панел</span>
+                                </Link>
+                            )}
+
                             <Link to="/create-recipe" className="flex items-center gap-1.5 text-slate-600 hover:text-orange-500 transition-colors font-medium">
                                 <PlusSquare size={18} /> <span>Нова рецепта</span>
                             </Link>
                             <Link to="/profile" className="flex items-center gap-1.5 text-slate-600 hover:text-orange-500 transition-colors font-medium">
                                 <User size={18} /> <span>{user.username}</span>
                             </Link>
-                            <button onClick={() => { logout(); navigate('/login'); }} className="text-slate-400 hover:text-red-500 transition">
+                            <button onClick={() => { logout(); navigate('/login'); }} className="text-slate-400 hover:text-red-500 transition-colors">
                                 <LogOut size={18} />
                             </button>
                         </>

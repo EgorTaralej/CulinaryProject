@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Camera, Loader2, MapPin, Search, Clock, X } from 'lucide-react';
+import { Camera, Loader2, MapPin, Search, Clock, X, UserCheck, UserPlus } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 export const profileLoader = async ({ params }) => {
@@ -16,27 +16,40 @@ export const profileLoader = async ({ params }) => {
     return res.data;
 };
 
-const HorizontalRecipeCard = ({ recipe }) => {
+const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
+    const date = new Date(recipe.createdAt).toLocaleDateString('bg-BG', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+
     return (
         <Link to={`/recipe/${recipe._id}`} className="flex w-full gap-4 md:gap-6 py-6 border-b border-slate-100 hover:bg-slate-50/50 transition-all group">
             <div className="w-28 h-28 md:w-40 md:h-40 flex-shrink-0 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-sm">
                 {recipe.mainImage ? (
                     <img src={recipe.mainImage} alt={recipe.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs font-bold text-center p-2">Няма снимка</div>
+                    <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs font-bold text-center p-2 uppercase">Няма снимка</div>
                 )}
             </div>
 
             <div className="flex flex-col justify-center flex-1 min-w-0">
-                <h3 className="text-lg md:text-2xl font-black text-slate-950 line-clamp-1 mb-1 md:mb-2 group-hover:text-orange-500 transition-colors tracking-tight">
-                    {recipe.title}
-                </h3>
+                <div className="flex items-start justify-between gap-2 mb-1 md:mb-2">
+                    <h3 className="text-lg md:text-2xl font-black text-slate-950 line-clamp-1 group-hover:text-orange-500 transition-colors tracking-tight uppercase">
+                        {recipe.title}
+                    </h3>
+                    {isMyProfile && recipe.status === 'pending' && (
+                        <span className="flex-shrink-0 bg-orange-50 text-orange-600 text-[10px] font-black uppercase px-2 py-1 rounded-lg border border-orange-100">
+                            Чака одобрение
+                        </span>
+                    )}
+                </div>
                 
                 <p className="text-slate-500 text-xs md:text-base line-clamp-2 leading-relaxed mb-3 md:mb-4 font-medium italic">
                     {recipe.ingredients?.join(' • ')}
                 </p>
 
-                <div className="flex items-center gap-4 text-slate-400 text-[10px] md:text-xs font-black uppercase tracking-widest">
+                <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-slate-400 text-[10px] md:text-xs font-black uppercase tracking-widest">
                     <div className="flex items-center gap-2">
                         <Avatar className="w-5 h-5 border border-slate-100">
                             <AvatarImage src={recipe.author?.profileImage} />
@@ -46,9 +59,12 @@ const HorizontalRecipeCard = ({ recipe }) => {
                         </Avatar>
                         <span className="text-slate-900">{recipe.author?.username}</span>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5 border-l border-slate-200 pl-4">
                         <Clock size={14} className="text-orange-500" /> 
-                        <span>45 МИН.</span>
+                        <span>{recipe.cookTime || '45'} МИН.</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 border-l border-slate-200 pl-4">
+                        <span>{date}</span>
                     </div>
                 </div>
             </div>
@@ -62,7 +78,7 @@ const Profile = () => {
     const allUserRecipes = data.recipes || data.myRecipes || [];
     
     const { id } = useParams();
-    const { user: loggedInUser } = useContext(AuthContext);
+    const { user: loggedInUser, refreshUser } = useContext(AuthContext);
     const { toast } = useToast();
     const revalidator = useRevalidator();
     
@@ -75,6 +91,24 @@ const Profile = () => {
     const [tempImg, setTempImg] = useState(profileData?.profileImage || '');
 
     const isMyProfile = !id || id === loggedInUser?.id;
+
+    const isFollowing = useMemo(() => {
+        return loggedInUser?.following?.some(followId => (followId._id || followId) === profileData._id);
+    }, [loggedInUser?.following, profileData._id]);
+
+    const handleFollow = async () => {
+        try {
+            await api.put(`/users/follow/${profileData._id}`);
+            await refreshUser();
+            revalidator.revalidate();
+            toast({ 
+                title: isFollowing ? "Вече не следвате този потребител." : "Започнахте да следвате потребителя!",
+                duration: 2000
+            });
+        } catch (err) {
+            toast({ variant: "destructive", title: "Грешка при операцията" });
+        }
+    };
 
     const openUserList = (type) => {
         const list = type === 'following' ? profileData.following : profileData.followers;
@@ -135,7 +169,7 @@ const Profile = () => {
                         
                         {isMyProfile ? (
                             !isEditing ? (
-                                <Button onClick={() => setIsEditing(true)} variant="outline" className="rounded-xl border-slate-200 font-bold px-6 shadow-none">Редактирай</Button>
+                                <Button onClick={() => setIsEditing(true)} variant="outline" className="rounded-xl border-slate-200 font-bold px-6 shadow-none transition-all hover:bg-slate-50">Редактирай</Button>
                             ) : (
                                 <div className="flex gap-2">
                                     <Button onClick={handleUpdate} disabled={loading} className="bg-orange-500 hover:bg-orange-600 rounded-xl font-bold px-6 shadow-none text-white">
@@ -145,7 +179,16 @@ const Profile = () => {
                                 </div>
                             )
                         ) : (
-                            <Button className="bg-slate-950 hover:bg-orange-500 text-white px-10 py-6 rounded-xl font-black text-lg shadow-none">Follow</Button>
+                            <Button 
+                                onClick={handleFollow}
+                                className={`px-10 py-6 rounded-xl font-black text-lg shadow-lg transition-all border-none ${
+                                    isFollowing 
+                                    ? "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-500 shadow-none" 
+                                    : "bg-slate-950 text-white hover:bg-orange-500"
+                                }`}
+                            >
+                                {isFollowing ? <><UserCheck className="mr-2" /> Отпоследвай</> : <><UserPlus className="mr-2" /> Последвай</>}
+                            </Button>
                         )}
                     </div>
 
@@ -153,11 +196,11 @@ const Profile = () => {
                         <Textarea 
                             value={bio} 
                             onChange={(e) => setBio(e.target.value)} 
-                            className="mt-4 w-full rounded-2xl bg-slate-50 border-none resize-none p-6 text-lg focus-visible:ring-orange-500" 
+                            className="mt-4 w-full rounded-2xl bg-slate-50 border-none resize-none p-6 text-lg focus-visible:ring-orange-500 shadow-inner" 
                             placeholder="Споделете нещо за себе си..."
                         />
                     ) : (
-                        <p className="text-slate-400 text-lg leading-relaxed max-w-2xl font-medium">{profileData?.bio || "Няма описание."}</p>
+                        <p className="text-slate-600 text-lg leading-relaxed max-w-2xl font-medium">{profileData?.bio || "Няма описание."}</p>
                     )}
 
                     <div className="flex gap-8 pt-2">
@@ -204,7 +247,7 @@ const Profile = () => {
                 <TabsContent value="recipes" className="w-full mt-0 outline-none block">
                     <div className="flex flex-col w-full">
                         {filteredRecipes.length > 0 ? (
-                            filteredRecipes.map(r => <HorizontalRecipeCard key={r._id} recipe={r} />)
+                            filteredRecipes.map(r => <HorizontalRecipeCard key={r._id} recipe={r} isMyProfile={isMyProfile} />)
                         ) : (
                             <div className="py-20 text-center w-full text-slate-300 font-black text-xl italic">Няма открити рецепти.</div>
                         )}
@@ -214,7 +257,7 @@ const Profile = () => {
                 <TabsContent value="favorites" className="w-full mt-0 outline-none block">
                     <div className="flex flex-col w-full">
                         {filteredFavorites.length > 0 ? (
-                            filteredFavorites.map(r => <HorizontalRecipeCard key={r._id} recipe={r} />)
+                            filteredFavorites.map(r => <HorizontalRecipeCard key={r._id} recipe={r} isMyProfile={false} />)
                         ) : (
                             <div className="py-20 text-center w-full text-slate-300 font-black text-xl uppercase tracking-tighter italic">Няма открити любими.</div>
                         )}
