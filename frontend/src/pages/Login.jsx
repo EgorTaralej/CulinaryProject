@@ -18,18 +18,19 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
         try {
             await login(email, password);
             navigate('/');
         } catch (err) {
-            toast({
-                variant: "destructive",
-                title: "Грешка при вход",
-                description: "Грешен имейл или парола. Опитайте отново."
-            });
-        } finally {
-            setLoading(false);
+            if (err.response?.status === 403 && err.response?.data?.message === "account_blocked") {
+                toast({
+                    variant: "destructive",
+                    title: "Достъпът е отказан",
+                    description: "Този профил е блокиран от администратор."
+                });
+            } else {
+                toast({ variant: "destructive", title: "Грешка", description: "Грешен имейл или парола." });
+            }
         }
     };
 

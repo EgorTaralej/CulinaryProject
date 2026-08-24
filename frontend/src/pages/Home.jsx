@@ -4,17 +4,24 @@ import api from '@/services/api';
 import RecipeCard from '@/components/RecipeCard';
 import SearchFilters from '@/components/SearchFilters';
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LayoutGrid, Users } from 'lucide-react';
 
 export const homeLoader = async () => {
-    const [recipesRes, categoriesRes] = await Promise.all([
+    const [recipesRes, categoriesRes, feedRes] = await Promise.all([
         api.get('/recipes'),
-        api.get('/categories')
+        api.get('/categories'),
+        api.get('/recipes/feed')
     ]);
-    return { recipes: recipesRes.data, categories: categoriesRes.data };
+    return {
+        recipes: recipesRes.data,
+        categories: categoriesRes.data,
+        feedRecipes: feedRes.data
+    };
 };
 
 const Home = () => {
-    const { recipes, categories } = useLoaderData();
+    const { recipes, categories, feedRecipes } = useLoaderData();
     const { toast } = useToast();
     const [displayRecipes, setDisplayRecipes] = useState(recipes);
     const [loading, setLoading] = useState(false);
@@ -22,6 +29,7 @@ const Home = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isFiltered, setIsFiltered] = useState(false);
     const [usedAdvanced, setUsedAdvanced] = useState(false);
+    const [activeTab, setActiveTab] = useState('all');
 
     const handleSearch = async (filters) => {
         const hasAdvanced = filters.includeTags.length > 0 || 
@@ -49,6 +57,7 @@ const Home = () => {
             setDisplayRecipes(res.data);
             setIsFiltered(true);
             setUsedAdvanced(hasAdvanced);
+            setActiveTab('all');
         } catch (err) {
             toast({ variant: "destructive", title: "Грешка при търсене" });
         } finally {
@@ -80,29 +89,64 @@ const Home = () => {
                 />
             </div>
 
-            <div className="space-y-8">
-                <div className="flex items-center justify-between px-2">
-                    <h2 className="text-2xl font-black text-slate-950">
-                        {isFiltered ? "Резултати от търсенето" : "Всички рецепти"} 
-                        <span className="text-slate-300 ml-2">({displayRecipes.length})</span>
-                    </h2>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full !flex !flex-col">
+                <div className="w-full flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-6 mb-8 gap-6">
+                    <TabsList className="bg-slate-100/50 p-1 rounded-2xl h-auto border-none inline-flex w-fit shadow-none outline-none">
+                        <TabsTrigger value="all" className="rounded-xl px-6 py-3 font-black text-sm data-[state=active]:bg-white data-[state=active]:text-orange-500 shadow-none focus-visible:ring-0">
+                            <LayoutGrid size={18} className="mr-2" /> За теб
+                        </TabsTrigger>
+                        <TabsTrigger value="following" className="rounded-xl px-6 py-3 font-black text-sm data-[state=active]:bg-white data-[state=active]:text-orange-500 shadow-none focus-visible:ring-0">
+                            <Users size={18} className="mr-2" /> Следвани
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-3xl font-black text-slate-950 tracking-tight">
+                            {activeTab === 'all'
+                                ? (isFiltered ? "Резултати от търсенето" : "Всички рецепти")
+                                : "От последвани автори"}
+                            <span className="text-slate-300 ml-3 font-bold">
+                                ({activeTab === 'all' ? displayRecipes.length : feedRecipes.length})
+                            </span>
+                        </h2>
                     
-                    {isFiltered && !usedAdvanced && (
-                        <button 
-                            onClick={handleClear}
-                            className="text-sm font-bold text-orange-600 hover:text-slate-950 transition-colors"
-                        >
-                            ✕ Изчисти търсенето
-                        </button>
-                    )}
+                        {isFiltered && !usedAdvanced && activeTab === 'all' && (
+                            <button onClick={handleClear} className="text-sm font-bold text-orange-600 hover:text-slate-950 transition-colors">
+                                ✕ Изчисти търсенето
+                            </button>
+                        )}
+                    </div>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                    {displayRecipes.map(recipe => (
-                        <RecipeCard key={recipe._id} recipe={recipe} />
-                    ))}
+
+                <div className="w-full">
+                    <TabsContent value="all" className="w-full mt-0 outline-none border-none shadow-none">
+                        {displayRecipes.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+                                {displayRecipes.map(recipe => (
+                                    <RecipeCard key={recipe._id} recipe={recipe} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="py-20 text-center text-slate-300 font-bold uppercase italic text-xl">Няма открити рецепти.</div>
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="following" className="w-full mt-0 outline-none border-none shadow-none">
+                        {feedRecipes.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+                                {feedRecipes.map(recipe => (
+                                    <RecipeCard key={recipe._id} recipe={recipe} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="py-24 text-center bg-slate-50 rounded-[3.5rem] border-4 border-dashed border-slate-100 px-6">
+                                <p className="text-slate-400 font-black text-2xl uppercase tracking-tight mb-3 italic">Още няма нищо тук</p>
+                                <p className="text-slate-400 text-lg font-medium italic">Последвай любимите си автори, за да виждаш рецептите им тук.</p>
+                            </div>
+                        )}
+                    </TabsContent>
                 </div>
-            </div>
+            </Tabs>
         </div>
     );
 };

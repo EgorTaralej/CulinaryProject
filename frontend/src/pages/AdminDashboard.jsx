@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShieldAlert, Check, X, Trash2, Ban, Mail, Eye } from 'lucide-react';
+import { ShieldAlert, Check, X, Trash2, Ban, Mail, Eye, Archive, CheckCircle2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 export const adminLoader = async () => {
@@ -26,9 +26,9 @@ const AdminDashboard = () => {
     const revalidator = useRevalidator();
     const { toast } = useToast();
 
-    const handleAction = async (url, method = 'put', successMsg) => {
+    const handleAction = async (url, method = 'put', successMsg, body = {}) => {
         try {
-            await api[method](url);
+            await api[method](url, body);
             toast({ title: successMsg });
             revalidator.revalidate();
         } catch (err) {
@@ -43,7 +43,7 @@ const AdminDashboard = () => {
                     <ShieldAlert size={40} />
                 </div>
                 <div>
-                    <h1 className="text-4xl md:text-5xl font-black text-slate-950 tracking-tighter leading-none">Контролен панел</h1>
+                    <h1 className="text-4xl md:text-5xl font-black text-slate-950 tracking-tighter leading-none">Админ панел</h1>
                     <p className="text-slate-400 font-bold uppercase text-[10px] md:text-xs tracking-[0.2em] mt-2">Администрация на RecipeShare</p>
                 </div>
             </div>
@@ -67,91 +67,101 @@ const AdminDashboard = () => {
                 </div>
 
                 <TabsContent value="reports" className="w-full space-y-8 outline-none animate-in fade-in duration-500">
-                    {data.reports.map(report => (
-                        <Card key={report._id} className="p-8 md:p-10 border-none shadow-2xl rounded-[3rem] bg-white relative overflow-hidden group w-full">
-                            <div className="absolute top-0 left-0 w-full h-2 bg-red-500/10 group-hover:bg-red-500 transition-colors" />
-                            
-                            <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
-                                {/* 1. АВТОР */}
-                                <div className="flex flex-col">
-                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-4 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-red-500" /> Автор на рецептата
-                                    </h4>
-                                    <div className="flex items-center gap-4 mb-6">
-                                        <Avatar className="h-14 w-14 border-2 border-white shadow-md">
-                                            <AvatarImage src={report.recipe?.author?.profileImage} />
-                                            <AvatarFallback className="bg-slate-100 font-black">{report.recipe?.author?.username?.[0]}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="min-w-0">
-                                            <p className="font-black text-xl text-slate-900 truncate">{report.recipe?.author?.username}</p>
-                                            <p className="text-xs text-slate-400 font-bold flex items-center gap-1 truncate italic">{report.recipe?.author?.email}</p>
+                    {data.reports.map(report => {
+                        const isRecipeDeleted = !report.recipe;
+                        const isAuthorDeleted = !report.recipe?.author;
+                        const hasActionBeenTaken = isRecipeDeleted || isAuthorDeleted;
+
+                        return (
+                            <Card key={report._id} className={`p-8 md:p-10 border-none shadow-2xl rounded-[3rem] bg-white relative overflow-hidden group w-full ${hasActionBeenTaken ? 'opacity-90' : ''}`}>
+                                <div className={`absolute top-0 left-0 w-full h-2 ${hasActionBeenTaken ? 'bg-emerald-500' : 'bg-red-500/10 group-hover:bg-red-500'} transition-colors`} />
+                                
+                                <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
+                                    <div className="flex flex-col">
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-4 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" /> Автор на рецептата
+                                        </h4>
+                                        <div className="flex items-center gap-4 mb-6">
+                                            <Avatar className="h-14 w-14 border-2 border-white shadow-md">
+                                                <AvatarImage src={report.recipe?.author?.profileImage} />
+                                                <AvatarFallback className="bg-slate-100 font-black">{isAuthorDeleted ? '?' : report.recipe?.author?.username?.[0]}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="min-w-0">
+                                                <p className={`font-black text-xl truncate ${isAuthorDeleted ? 'text-slate-400 italic' : 'text-slate-900'}`}>{isAuthorDeleted ? "Авторът е премахнат" : report.recipe?.author?.username}</p>
+                                                {!isAuthorDeleted && <p className="text-xs text-slate-400 font-bold flex items-center gap-1 truncate italic">{report.recipe?.author?.email}</p>}
+                                            </div>
+                                        </div>
+                                        <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 mt-auto font-bold">
+                                            <p className="text-[10px] text-slate-400 uppercase font-black mb-1 tracking-widest">Рецепта:</p>
+                                            <p className={`line-clamp-1 ${isRecipeDeleted ? 'text-slate-400 italic' : 'text-slate-900 font-black'}`}>{isRecipeDeleted ? "Рецептата е изтрита" : report.recipe?.title}</p>
+                                            {!isRecipeDeleted && <Link to={`/recipe/${report.recipe?._id}`} className="text-orange-500 text-[10px] font-black uppercase hover:underline mt-2 flex items-center gap-1"><Eye size={12}/> Преглед</Link>}
                                         </div>
                                     </div>
-                                    <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 mt-auto">
-                                        <p className="text-[10px] text-slate-400 uppercase font-black mb-1">Рецепта:</p>
-                                        <p className="font-black text-slate-900 line-clamp-1">{report.recipe?.title || "Изтрита рецепта"}</p>
-                                        <Link to={`/recipe/${report.recipe?._id}`} className="text-orange-500 text-[10px] font-black uppercase hover:underline mt-2 flex items-center gap-1">
-                                            <Eye size={12}/> Преглед
-                                        </Link>
-                                    </div>
-                                </div>
 
-                                <div className="flex flex-col xl:border-x xl:border-slate-50 xl:px-10">
-                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-4 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500" /> Подаден сигнал от
-                                    </h4>
-                                    <div className="flex items-center gap-4">
-                                        <Avatar className="h-14 w-14 border-2 border-white shadow-md">
-                                            <AvatarImage src={report.reporter?.profileImage} />
-                                            <AvatarFallback className="bg-slate-100 font-black">{report.reporter?.username?.[0]}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="min-w-0">
-                                            <p className="font-black text-xl text-slate-900 truncate">{report.reporter?.username}</p>
-                                            <p className="text-xs text-slate-400 font-bold italic truncate">{report.reporter?.email}</p>
+                                    <div className="flex flex-col xl:border-x xl:border-slate-50 xl:px-10">
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-4 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-orange-500" /> Подаден сигнал от
+                                        </h4>
+                                        <div className="flex items-center gap-4">
+                                            <Avatar className="h-14 w-14 border-2 border-white shadow-md">
+                                                <AvatarImage src={report.reporter?.profileImage} />
+                                                <AvatarFallback className="bg-slate-100 font-black">{report.reporter?.username?.[0]}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="min-w-0">
+                                                <p className="font-black text-xl text-slate-900 truncate">{report.reporter?.username}</p>
+                                                <p className="text-xs text-slate-400 font-bold italic truncate">{report.reporter?.email}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="mt-auto py-4">
-                                        <p className="text-[10px] text-slate-300 font-bold uppercase italic italic">Сигналът изисква проверка на съдържанието</p>
-                                    </div>
-                                </div>
 
-                                {/* 3. ДЕЙСТВИЯ */}
-                                <div className="flex flex-col justify-center gap-3">
-                                    <Button 
-                                        onClick={() => handleAction(`/admin/recipe/${report.recipe?._id}`, 'delete', 'Рецептата е изтрита')} 
-                                        className="w-full bg-red-500 hover:bg-slate-950 text-white font-black rounded-xl py-7 shadow-xl shadow-red-100 border-none transition-all active:scale-95"
-                                    >
-                                        <Trash2 className="mr-2" size={18}/> ИЗТРИЙ РЕЦЕПТАТА
-                                    </Button>
-                                    
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="flex flex-col justify-center gap-4">
                                         <Button 
-                                            onClick={() => handleAction(`/admin/user/${report.recipe?.author?._id}/block`, 'put', 'Статус променен')} 
-                                            variant="outline" 
-                                            className="border-slate-200 font-black text-[10px] uppercase text-slate-600 py-5 rounded-xl hover:bg-slate-950 hover:text-white transition-all shadow-none"
+                                            disabled={isRecipeDeleted}
+                                            onClick={() => handleAction(`/admin/recipe/${report.recipe?._id}`, 'delete', 'Рецептата е изтрита')} 
+                                            className="w-full bg-red-500 hover:bg-slate-950 text-white font-black rounded-xl py-7 shadow-xl shadow-red-100 border-none transition-all disabled:bg-slate-300 disabled:text-slate-600 disabled:opacity-100 disabled:cursor-not-allowed disabled:shadow-none"
                                         >
-                                            <Ban size={14} className="mr-1"/> Блок Автор
+                                            <Trash2 className="mr-2" size={18}/> 
+                                            {isRecipeDeleted ? "РЕЦЕПТАТА Е ИЗТРИТА" : "ИЗТРИЙ РЕЦЕПТАТА"}
                                         </Button>
+                                        
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <Button 
+                                                disabled={isAuthorDeleted}
+                                                onClick={() => handleAction(`/admin/user/${report.recipe?.author?._id}/block`, 'put', 'Авторът е блокиран', { reportId: report._id })} 
+                                                variant="outline" 
+                                                className="border-slate-200 font-black text-[10px] uppercase text-slate-600 py-5 rounded-xl transition-all shadow-none disabled:bg-slate-100 disabled:text-slate-400 disabled:opacity-100 disabled:cursor-not-allowed"
+                                            >
+                                                <Ban size={14} className="mr-1"/> Блок Автор
+                                            </Button>
+
+                                            <Button 
+                                                onClick={() => handleAction(`/admin/user/${report.reporter?._id}/block`, 'put', 'Статус променен')} 
+                                                variant="outline" 
+                                                className="border-slate-200 font-black text-[10px] uppercase text-slate-600 py-5 rounded-xl hover:bg-slate-950 hover:text-white transition-all shadow-none"
+                                            >
+                                                <Ban size={14} className="mr-1"/> Блок Репортер
+                                            </Button>
+                                        </div>
+                                        
                                         <Button 
-                                            onClick={() => handleAction(`/admin/user/${report.reporter?._id}/block`, 'put', 'Статус променен')} 
-                                            variant="outline" 
-                                            className="border-slate-200 font-black text-[10px] uppercase text-slate-600 py-5 rounded-xl hover:bg-slate-950 hover:text-white transition-all shadow-none"
+                                            onClick={() => handleAction(`/admin/report/${report._id}/resolve`, 'put', hasActionBeenTaken ? 'Случаят е приключен' : 'Сигналът е архивиран')} 
+                                            className={`w-full font-black text-[11px] uppercase py-7 rounded-xl transition-all border-none shadow-none ${
+                                                hasActionBeenTaken 
+                                                ? "bg-emerald-500 text-white hover:bg-slate-950 shadow-lg shadow-emerald-100" 
+                                                : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+                                            }`}
                                         >
-                                            <Ban size={14} className="mr-1"/> Блок Репортер
+                                            {hasActionBeenTaken ? (
+                                                <><CheckCircle2 size={18} className="mr-2" /> Затвори приключения сигнал</>
+                                            ) : (
+                                                <><Archive size={18} className="mr-2" /> Игнорирай и архивирай</>
+                                            )}
                                         </Button>
                                     </div>
-                                    
-                                    <Button 
-                                        onClick={() => handleAction(`/admin/report/${report._id}/resolve`, 'put', 'Сигналът е архивиран')} 
-                                        variant="ghost" 
-                                        className="text-slate-300 font-black text-[10px] uppercase hover:bg-slate-50 py-3 rounded-lg shadow-none"
-                                    >
-                                        Игнорирай сигнала
-                                    </Button>
                                 </div>
-                            </div>
-                        </Card>
-                    ))}
+                            </Card>
+                        );
+                    })}
                     {data.reports.length === 0 && (
                         <div className="py-24 text-center bg-slate-50/50 rounded-[3rem] border-4 border-dashed border-slate-100">
                             <p className="text-slate-300 font-black text-2xl uppercase tracking-widest italic">Няма активни сигнали</p>

@@ -38,7 +38,10 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ message: "Invalid credentials" });
         }
         if (user.isBlocked) {
-            return res.status(403).json({ message: "Вашият профил е блокиран. Свържете се с администратор." });
+            return res.status(403).json({
+                message: "account_blocked",
+                error: "Вашият профил е блокиран поради нарушение на правилата."
+            });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);

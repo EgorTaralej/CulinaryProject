@@ -11,8 +11,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 
 export const recipeLoader = async ({ params }) => {
-    const res = await api.get(`/recipes/${params.id}`);
-    return res.data;
+    try {
+        const res = await api.get(`/recipes/${params.id}`);
+        return res.data;
+    } catch (err) {
+        return { recipe: null, comments: [] };
+    }
 };
 
 const RecipeDetails = () => {
@@ -25,20 +29,29 @@ const RecipeDetails = () => {
     const [newComment, setNewComment] = useState('');
     const [isReportOpen, setIsReportOpen] = useState(false);
 
-    const existingRating = recipe.ratings?.find(r => (r.user._id || r.user) === user?.id);
+    const existingRating = recipe?.ratings?.find(r => (r.user._id || r.user) === user?.id);
     const [userRating, setUserRating] = useState(existingRating?.stars || 0);
 
-    const isAuthor = user?.id === recipe.author._id;
+    const isAuthor = user?.id === recipe?.author?._id;
     
     const isFavorite = useMemo(() => {
-        return user?.favorites?.some(fav => (fav._id || fav) === recipe._id);
-    }, [user?.favorites, recipe._id]);
+        return user?.favorites?.some(fav => (fav._id || fav) === recipe?._id);
+    }, [user?.favorites, recipe?._id]);
 
-    const publishDate = new Date(recipe.createdAt).toLocaleDateString('bg-BG', {
+    const publishDate = recipe ? new Date(recipe.createdAt).toLocaleDateString('bg-BG', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
-    });
+    }) : "";
+
+    if (!recipe || !recipe.title) {
+        return (
+            <div className="max-w-4xl mx-auto py-32 text-center">
+                <h1 className="text-3xl font-black text-slate-300 uppercase tracking-tighter">Тази рецепта беше изтрита</h1>
+                <Link to="/" className="text-orange-500 font-bold hover:underline mt-4 inline-block">Върни се в началото</Link>
+            </div>
+        );
+    }
 
     const handleToggleFavorite = async () => {
         try {
@@ -70,12 +83,14 @@ const RecipeDetails = () => {
         if (isAuthor) return;
         try {
             const res = await api.post(`/recipes/${recipe._id}/rate`, { stars });
-            setRecipe({ ...recipe, averageRating: res.data.averageRating });
+            setRecipe({ 
+                ...recipe, 
+                averageRating: res.data.averageRating,
+                ratings: res.data.ratings 
+            });
             setUserRating(stars);
             toast({ title: "Оценката е приета!" });
-        } catch (err) {
-            toast({ variant: "destructive", title: "Грешка при оценяване" });
-        }
+        } catch (err) { toast({ variant: "destructive", title: "Грешка" }); }
     };
 
     const videoId = useMemo(() => {
@@ -93,12 +108,14 @@ const RecipeDetails = () => {
 
                 <div className="flex flex-col space-y-6">
                     <div className="flex justify-between items-start">
-                        <h1 className="text-5xl font-black text-slate-950 leading-tight">{recipe.title}</h1>
+                        <h1 className="text-3xl md:text-5xl font-black text-slate-950 leading-[1.1] break-all whitespace-normal overflow-wrap-anywhere flex-1 mr-4">
+                            {recipe.title}
+                        </h1>
                         <Button 
                             type="button"
                             onClick={handleToggleFavorite}
                             variant="ghost" 
-                            className={`rounded-full w-14 h-14 p-0 transition-all border-2 ${
+                            className={`rounded-full w-14 h-14 p-0 transition-all border-2 shrink-0 ${
                                 isFavorite 
                                 ? 'text-orange-500 border-orange-500 bg-orange-50' 
                                 : 'text-slate-950 border-slate-200 bg-white hover:border-orange-500 hover:text-orange-500'
@@ -224,7 +241,12 @@ const RecipeDetails = () => {
             <div className="max-w-3xl mx-auto space-y-12">
                 <h2 className="text-3xl font-black text-slate-950">Коментари <span className="text-orange-500">({comments.length})</span></h2>
                 <form onSubmit={handleAddComment} className="relative group">
-                    <Textarea placeholder="Споделете вашето мнение..." className="rounded-[2rem] p-8 bg-white shadow-2xl border-none text-lg focus-visible:ring-2 focus-visible:ring-orange-500 min-h-[140px] transition-all resize-none" value={newComment} onChange={(e) => setNewComment(e.target.value)} />
+                    <Textarea 
+                        placeholder="Споделете вашето мнение..." 
+                        className="rounded-[2rem] p-8 bg-white shadow-2xl border-none text-lg focus-visible:ring-2 focus-visible:ring-orange-500 min-h-[140px] transition-all resize-none shadow-inner" 
+                        value={newComment} 
+                        onChange={(e) => setNewComment(e.target.value)} 
+                    />
                     <Button type="submit" className="absolute bottom-6 right-6 bg-orange-500 hover:bg-slate-950 text-white rounded-2xl w-14 h-14 p-0 shadow-lg shadow-orange-200 transition-all active:scale-90"><Send size={24} /></Button>
                 </form>
                 <div className="space-y-6">

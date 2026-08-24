@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Camera, Loader2, MapPin, Search, Clock, X, UserCheck, UserPlus } from 'lucide-react';
+import { Camera, Loader2, MapPin, Search, Clock, X, UserCheck, UserPlus, Ban } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 export const profileLoader = async ({ params }) => {
@@ -35,7 +35,7 @@ const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
 
             <div className="flex flex-col justify-center flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 mb-1 md:mb-2">
-                    <h3 className="text-lg md:text-2xl font-black text-slate-950 line-clamp-1 group-hover:text-orange-500 transition-colors tracking-tight uppercase">
+                    <h3 className="text-lg md:text-2xl font-black text-slate-950 leading-tight line-clamp-2 break-all group-hover:text-orange-500 transition-colors tracking-tight uppercase">
                         {recipe.title}
                     </h3>
                     {isMyProfile && recipe.status === 'pending' && (
@@ -96,6 +96,15 @@ const Profile = () => {
         return loggedInUser?.following?.some(followId => (followId._id || followId) === profileData._id);
     }, [loggedInUser?.following, profileData._id]);
 
+    if (profileData.isBlocked && loggedInUser?.role !== 'admin') {
+        return (
+            <div className="max-w-4xl mx-auto py-32 text-center">
+                <Ban size={64} className="mx-auto text-slate-200 mb-4" />
+                <h1 className="text-2xl font-black text-slate-300 uppercase tracking-tighter">Този профил е блокиран</h1>
+            </div>
+        );
+    }
+
     const handleFollow = async () => {
         try {
             await api.put(`/users/follow/${profileData._id}`);
@@ -120,8 +129,9 @@ const Profile = () => {
         setLoading(true);
         try {
             await api.put('/users/update', { bio, profileImage: tempImg });
+            await refreshUser();
+            await revalidator.revalidate();
             setIsEditing(false);
-            revalidator.revalidate();
             toast({ title: "Профилът е обновен!" });
         } catch (err) { toast({ variant: "destructive", title: "Грешка" }); }
         finally { setLoading(false); }
@@ -137,6 +147,11 @@ const Profile = () => {
 
     return (
         <div className="w-full max-w-4xl mx-auto py-10 px-4">
+            {profileData.isBlocked && (
+                <div className="bg-red-500 text-white p-3 rounded-xl mb-8 text-center font-black uppercase text-[10px] tracking-widest">
+                    ВНИМАНИЕ: Профилът е блокиран. Виждате го заради админ права.
+                </div>
+            )}
             <div className="w-full flex flex-col items-start space-y-6 mb-16">
                 <div className="relative">
                     <Avatar className="w-32 h-32 border-4 border-white shadow-md">

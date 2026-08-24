@@ -36,11 +36,25 @@ router.put('/recipe/:id/approve', [auth, admin], async (req, res) => {
 
 router.put('/user/:id/block', [auth, admin], async (req, res) => {
     try {
+        const { reportId } = req.body;
         const user = await User.findById(req.params.id);
-        user.isBlocked = !user.isBlocked;
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        user.isBlocked = true;
         await user.save();
-        res.json({ message: user.isBlocked ? "Потребителят е блокиран" : "Потребителят е отблокиран" });
+
+        await Recipe.deleteMany({ author: user._id });
+        const Comment = require('../models/Comment');
+        await Comment.deleteMany({ author: user._id });
+        await User.updateMany({}, { $pull: { followers: user._id, following: user._id } });
+        if (reportId) {
+            const Report = require('../models/Report');
+            await Report.findByIdAndUpdate(reportId, { status: 'resolved' });
+        }
+
+        res.json({ message: "Потребителят е блокиран и всичко негово е изтрито." });
     } catch (err) {
+        console.error(err);
         res.status(500).send('Server Error');
     }
 });

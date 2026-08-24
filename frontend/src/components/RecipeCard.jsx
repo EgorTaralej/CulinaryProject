@@ -28,13 +28,16 @@ const RecipeCard = ({ recipe }) => {
             </div>
 
             <CardHeader className="p-5 pb-2">
-                <div className="flex justify-between items-start">
-                    <h3 className="text-xl font-bold text-slate-800 line-clamp-1">
-                        {recipe.title}
-                    </h3>
-                    <div className="flex items-center text-amber-500 font-bold bg-amber-50 px-2 py-1 rounded-lg">
-                        <Star size={14} fill="currentColor" />
-                        <span className="ml-1 text-xs">{recipe.averageRating.toFixed(1)}</span>
+                <div className="flex justify-between items-start gap-2">
+                    <div className="h-12 flex-1 flex items-start min-w-0 pt-1">
+                        <h3 className="text-[17px] font-bold text-slate-800 leading-tight line-clamp-2 break-all overflow-wrap-anywhere">
+                            {recipe.title}
+                        </h3>
+                    </div>
+
+                    <div className="flex items-center text-amber-500 font-bold bg-amber-50 px-2 py-1 rounded-lg shrink-0 mt-1">
+                        <Star size={13} fill="currentColor" />
+                        <span className="ml-1 text-[11px]">{recipe.averageRating.toFixed(1)}</span>
                     </div>
                 </div>
             </CardHeader>

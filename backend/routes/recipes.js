@@ -8,12 +8,17 @@ const Report = require('../models/Report');
 
 router.get('/', async (req, res) => {
     try {
-        const recipes = await Recipe.find({ status: 'approved' })
+        const blockedUsers = await User.find({ isBlocked: true }).select('_id');
+        const blockedIds = blockedUsers.map(u => u._id);
+
+        const recipes = await Recipe.find({
+            status: 'approved',
+            author: { $nin: blockedIds }
+        })
             .populate('author', ['username', 'profileImage'])
             .sort({ createdAt: -1 });
         res.json(recipes);
     } catch (err) {
-        console.error(err.message);
         res.status(500).send('Server Error');
     }
 });
@@ -50,6 +55,24 @@ router.get('/search/advanced', async (req, res) => {
         const recipes = await Recipe.find(query)
             .populate('author', ['username', 'profileImage'])
             .sort({ createdAt: -1 });
+        res.json(recipes);
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
+
+router.get('/feed', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        const following = user.following || [];
+
+        const recipes = await Recipe.find({
+            author: { $in: following },
+            status: 'approved'
+        })
+            .populate('author', ['username', 'profileImage'])
+            .sort({ createdAt: -1 });
+
         res.json(recipes);
     } catch (err) {
         res.status(500).send('Server Error');
@@ -108,7 +131,10 @@ router.post('/:id/rate', auth, async (req, res) => {
         recipe.averageRating = totalStars / recipe.ratings.length;
 
         await recipe.save();
-        res.json({ averageRating: recipe.averageRating });
+        res.json({
+            averageRating: recipe.averageRating,
+            ratings: recipe.ratings
+        });
     } catch (err) {
         console.error("Error in POST /rate:", err.message);
         res.status(500).send('Server Error');
