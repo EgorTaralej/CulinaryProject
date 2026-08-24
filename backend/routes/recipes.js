@@ -25,8 +25,14 @@ router.get('/', async (req, res) => {
 
 router.get('/search/advanced', async (req, res) => {
     try {
+        const blockedUsers = await User.find({ isBlocked: true }).select('_id');
+        const blockedIds = blockedUsers.map(u => u._id);
+
         const { q, cuisine, diet, difficulty, include, exclude } = req.query;
-        let query = { status: 'approved' };
+        let query = {
+            status: 'approved',
+            author: { $nin: blockedIds }
+        };
 
         const getStem = (word) => word.trim().toLowerCase().replace(/[еаия]$/, '');
 
@@ -39,8 +45,13 @@ router.get('/search/advanced', async (req, res) => {
         }
 
         if (cuisine && cuisine !== 'Всички') query['category.cuisine'] = cuisine;
-        if (diet && diet !== 'Всички') query['category.diet'] = diet;
-        if (difficulty && difficulty !== 'Всички') query['category.difficulty'] = difficulty;
+        if (diet && diet !== 'Всички') {
+            if (diet === 'Без диета') {
+                query['category.diet'] = { $in: ["", null] };
+            } else {
+                query['category.diet'] = diet;
+            }
+        } if (difficulty && difficulty !== 'Всички') query['category.difficulty'] = difficulty;
 
         if (include) {
             const includeStems = include.split(',').map(s => new RegExp(getStem(s), 'i'));

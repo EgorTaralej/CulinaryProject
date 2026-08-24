@@ -50,14 +50,32 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
 
     const renderBadges = (items, field) => (
         <div className="flex flex-wrap gap-2">
-            {['Всички', ...items.map(i => i.name)].map((name) => (
+            <button
+                type="button"
+                onClick={() => setLocalFilters({ ...localFilters, [field]: 'Всички' })}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${localFilters[field] === 'Всички' ? 'bg-orange-500 text-white' : 'bg-slate-50 text-slate-500'}`}
+            >
+                Всички
+            </button>
+
+            {field === 'diet' && (
                 <button
-                    key={name}
                     type="button"
-                    onClick={() => setLocalFilters({ ...localFilters, [field]: name })}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${localFilters[field] === name ? 'bg-orange-500 text-white shadow-sm' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}
+                    onClick={() => setLocalFilters({ ...localFilters, [field]: 'Без диета' })}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${localFilters[field] === 'Без диета' ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-500'}`}
                 >
-                    {name}
+                    Без диета
+                </button>
+            )}
+
+            {items.map((item) => (
+                <button
+                    key={item._id}
+                    type="button"
+                    onClick={() => setLocalFilters({ ...localFilters, [field]: item.name })}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${localFilters[field] === item.name ? 'bg-orange-500 text-white' : 'bg-slate-50 text-slate-500'}`}
+                >
+                    {item.name}
                 </button>
             ))}
         </div>
