@@ -1,5 +1,5 @@
 import { useState, useContext, useMemo } from 'react';
-import { useLoaderData, Link } from 'react-router-dom';
+import { useNavigate, useLoaderData, Link } from 'react-router-dom';
 import api from '@/services/api';
 import { AuthContext } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ const RecipeDetails = () => {
     const { recipe: initialRecipe, comments: initialComments } = useLoaderData();
     const { toast } = useToast();
     const { user, refreshUser } = useContext(AuthContext);
+    const navigate = useNavigate();
     
     const [recipe, setRecipe] = useState(initialRecipe);
     const [comments, setComments] = useState(initialComments);
@@ -54,6 +55,7 @@ const RecipeDetails = () => {
     }
 
     const handleToggleFavorite = async () => {
+        if (!user) return navigate('/login');
         try {
             await api.put(`/users/favorite/${recipe._id}`);
             await refreshUser();
@@ -69,6 +71,7 @@ const RecipeDetails = () => {
 
     const handleAddComment = async (e) => {
         e.preventDefault();
+        if (!user) return navigate('/login');
         if (!newComment.trim()) return;
         try {
             const res = await api.post(`/recipes/${recipe._id}/comment`, { text: newComment });
@@ -80,11 +83,12 @@ const RecipeDetails = () => {
     };
 
     const handleRate = async (stars) => {
+        if (!user) return navigate('/login');
         if (isAuthor) return;
         try {
             const res = await api.post(`/recipes/${recipe._id}/rate`, { stars });
-            setRecipe({ 
-                ...recipe, 
+            setRecipe({
+                ...recipe,
                 averageRating: res.data.averageRating,
                 ratings: res.data.ratings 
             });
@@ -198,7 +202,7 @@ const RecipeDetails = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 mb-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16 items-start">
                 <div className="lg:col-span-2 space-y-12">
                     <h2 className="text-3xl font-black text-slate-900 flex items-center gap-3"><Utensils className="text-orange-500" /> Инструкции</h2>
                     <div className="space-y-10">
@@ -241,13 +245,17 @@ const RecipeDetails = () => {
             <div className="max-w-3xl mx-auto space-y-12">
                 <h2 className="text-3xl font-black text-slate-950">Коментари <span className="text-orange-500">({comments.length})</span></h2>
                 <form onSubmit={handleAddComment} className="relative group">
-                    <Textarea 
+                    <Textarea
                         placeholder="Споделете вашето мнение..." 
-                        className="rounded-[2rem] p-8 bg-white shadow-2xl border-none text-lg focus-visible:ring-2 focus-visible:ring-orange-500 min-h-[140px] transition-all resize-none shadow-inner" 
+                        className="rounded-[2rem] p-6 md:p-8 pr-16 md:pr-24 bg-white shadow-2xl border-none text-base md:text-lg focus-visible:ring-2 focus-visible:ring-orange-500 min-h-[120px] md:min-h-[140px] transition-all resize-none shadow-inner font-medium"
                         value={newComment} 
-                        onChange={(e) => setNewComment(e.target.value)} 
+                        onChange={(e) => setNewComment(e.target.value)}
                     />
-                    <Button type="submit" className="absolute bottom-6 right-6 bg-orange-500 hover:bg-slate-950 text-white rounded-2xl w-14 h-14 p-0 shadow-lg shadow-orange-200 transition-all active:scale-90"><Send size={24} /></Button>
+                    <Button
+                        type="submit"
+                        className="absolute bottom-5 right-3 md:bottom-6 md:right-6 bg-orange-500 hover:bg-slate-950 text-white rounded-2xl w-10 h-10 md:w-14 md:h-14 p-0 shadow-lg shadow-orange-200 transition-all active:scale-90 border-none">
+                        <Send size={18} className="md:size-6" />
+                    </Button>
                 </form>
                 <div className="space-y-6">
                     {comments.map((c) => (
@@ -268,47 +276,49 @@ const RecipeDetails = () => {
                 </div>
             </div>
 
-            {isReportOpen && (
-                <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm">
-                    <div className="bg-[#fcfaf7] w-full max-w-md rounded-2xl shadow-2xl p-8 relative animate-in zoom-in-95 duration-200">
-                        <button 
-                            onClick={() => setIsReportOpen(false)} 
-                            className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 transition-colors"
-                        >
-                            <X size={24} />
-                        </button>
-
-                        <h2 className="text-3xl font-black text-slate-900 mb-6 tracking-tight">Докладване</h2>
-                        
-                        <p className="text-slate-500 leading-relaxed mb-8 text-sm font-medium">
-                            Моля, докладвайте рецепта само ако тя съдържа реклами, неподходящо съдържание, език на омразата или спам. Нашият екип ще я прегледа възможно най-скоро.
-                        </p>
-
-                        <div className="flex justify-end items-center gap-6">
-                            <button 
+            {
+                isReportOpen && (
+                    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm">
+                        <div className="bg-[#fcfaf7] w-full max-w-md rounded-2xl shadow-2xl p-8 relative animate-in zoom-in-95 duration-200">
+                            <button
                                 onClick={() => setIsReportOpen(false)}
-                                className="text-slate-900 font-bold text-lg hover:text-orange-500 transition-colors font-medium"
+                                className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 transition-colors"
                             >
-                                Отказ
+                                <X size={24} />
                             </button>
-                            <button 
-                                onClick={async () => {
-                                    try {
-                                        await api.post(`/recipes/${recipe._id}/report`, { reason: "Recipe Report" });
-                                        setIsReportOpen(false);
-                                        toast({ title: "Изпратено!", description: "Администратор ще прегледа рецептата." });
-                                    } catch (err) {
-                                        toast({ variant: "destructive", title: "Грешка при изпращане" });
-                                    }
-                                }}
-                                className="text-orange-500 font-black text-lg hover:text-slate-950 transition-all font-medium"
-                            >
-                                Докладвай
-                            </button>
+
+                            <h2 className="text-3xl font-black text-slate-900 mb-6 tracking-tight">Докладване</h2>
+
+                            <p className="text-slate-500 leading-relaxed mb-8 text-sm font-medium">
+                                Моля, докладвайте рецепта само ако тя съдържа реклами, неподходящо съдържание, език на омразата или спам. Нашият екип ще я прегледа възможно най-скоро.
+                            </p>
+
+                            <div className="flex justify-end items-center gap-6">
+                                <button
+                                    onClick={() => setIsReportOpen(false)}
+                                    className="text-slate-900 font-bold text-lg hover:text-orange-500 transition-colors font-medium"
+                                >
+                                    Отказ
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            await api.post(`/recipes/${recipe._id}/report`, { reason: "Recipe Report" });
+                                            setIsReportOpen(false);
+                                            toast({ title: "Изпратено!", description: "Администратор ще прегледа рецептата." });
+                                        } catch (err) {
+                                            toast({ variant: "destructive", title: "Грешка при изпращане" });
+                                        }
+                                    }}
+                                    className="text-orange-500 font-black text-lg hover:text-slate-950 transition-all font-medium"
+                                >
+                                    Докладвай
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </div>
     );
 };

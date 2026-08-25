@@ -50,12 +50,12 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <ProtectedRoute><Home /></ProtectedRoute>,
+        element: <Home />,
         loader: homeLoader
       },
       {
         path: "recipe/:id",
-        element: <ProtectedRoute><RecipeDetails /></ProtectedRoute>,
+        element: <RecipeDetails />,
         loader: recipeLoader
       },
       {

@@ -83,20 +83,20 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
 
     return (
         <div className="w-full space-y-6">
-            <div className="max-w-3xl mx-auto flex gap-3 items-center">
+            <div className="max-w-3xl mx-auto flex gap-2 md:gap-3 items-center">
                 
                 <Button 
                     onClick={() => setShowFilters(!showFilters)}
-                    className={`h-16 px-6 rounded-2xl transition-all border-none bg-white text-slate-600 shadow-xl hover:bg-slate-50 active:translate-y-0`}
+                    className="h-14 md:h-16 px-4 md:px-6 rounded-2xl border-none bg-white text-slate-600 shadow-xl hover:bg-slate-50 flex-shrink-0"
                 >
-                    <SlidersHorizontal size={24} />
+                    <SlidersHorizontal size={20} className="md:size-6" />
                 </Button>
 
-                <div className="relative flex-1 h-16 bg-white rounded-2xl shadow-xl flex items-center px-5 border-none">
-                    <SearchIcon className="text-slate-400 mr-3" size={20} />
-                    <Input 
-                        placeholder="Търси по име или съставка..."
-                        className="flex-1 border-none bg-transparent p-0 text-lg shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                <div className="relative flex-1 h-14 md:h-16 bg-white rounded-2xl shadow-xl flex items-center px-4 md:px-5 border-none min-w-0">
+                    <SearchIcon className="text-slate-300 mr-2 md:mr-3 shrink-0" size={18} />
+                    <Input
+                        placeholder={window.innerWidth < 768 ? "Търси..." : "Търси по име или съставка..."}
+                        className="flex-1 border-none bg-transparent p-0 text-base md:text-lg shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 min-w-0"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && onSearch({ ...localFilters, query: searchQuery })}
@@ -106,9 +106,9 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
                 <Button 
                     onClick={() => onSearch({ ...localFilters, query: searchQuery })}
                     disabled={loading}
-                    className="h-16 px-8 rounded-2xl bg-orange-500 hover:bg-slate-950 text-white font-black text-lg shadow-[0_10px_25px_-5px_rgba(249,115,22,0.4)] transition-all border-none active:translate-y-0"
+                    className="h-14 md:h-16 px-5 md:px-8 rounded-2xl bg-orange-500 hover:bg-slate-950 text-white font-black text-sm md:text-lg shadow-lg border-none flex-shrink-0"
                 >
-                    {loading ? <Loader2 className="animate-spin mr-2" /> : 'Търси'}
+                    {loading ? <Loader2 className="animate-spin " /> : 'Търси'}
                 </Button>
             </div>
 

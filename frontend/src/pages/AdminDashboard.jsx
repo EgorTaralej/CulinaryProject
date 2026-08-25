@@ -50,7 +50,7 @@ const AdminDashboard = () => {
 
             <Tabs defaultValue="reports" className="flex flex-col w-full space-y-10">
                 <div className="w-full border-b border-slate-100 pb-4">
-                    <TabsList className="bg-slate-100/50 p-1.5 rounded-[1.5rem] h-auto border-none inline-flex w-fit shadow-none outline-none ring-0">
+                    <TabsList className="w-full max-w-2xl md:mx-auto grid grid-cols-2 bg-slate-100/50 p-1.5 rounded-[1.5rem] h-auto border-none">
                         <TabsTrigger 
                             value="reports" 
                             className="rounded-[1.2rem] py-3 px-8 font-black text-base data-[state=active]:bg-white data-[state=active]:text-orange-500 data-[state=active]:shadow-lg transition-all outline-none ring-0 focus-visible:ring-0"
@@ -124,22 +124,26 @@ const AdminDashboard = () => {
                                             {isRecipeDeleted ? "РЕЦЕПТАТА Е ИЗТРИТА" : "ИЗТРИЙ РЕЦЕПТАТА"}
                                         </Button>
                                         
-                                        <div className="grid grid-cols-2 gap-3">
+                                        <div className="grid grid-cols-2 gap-2 md:gap-3">
+                                            {/* Бутон Блок Автор */}
                                             <Button 
                                                 disabled={isAuthorDeleted}
                                                 onClick={() => handleAction(`/admin/user/${report.recipe?.author?._id}/block`, 'put', 'Авторът е блокиран', { reportId: report._id })} 
                                                 variant="outline" 
-                                                className="border-slate-200 font-black text-[10px] uppercase text-slate-600 py-5 rounded-xl transition-all shadow-none disabled:bg-slate-100 disabled:text-slate-400 disabled:opacity-100 disabled:cursor-not-allowed"
+                                                className="flex-1 flex items-center justify-center gap-1 md:gap-2 border-slate-200 font-black text-[8px] md:text-[10px] uppercase text-slate-600 py-5 rounded-xl transition-all shadow-none disabled:bg-slate-100 disabled:text-slate-400 disabled:opacity-100"
                                             >
-                                                <Ban size={14} className="mr-1"/> Блок Автор
+                                                <Ban size={12} className="shrink-0" /> 
+                                                <span className="whitespace-nowrap">Блок Автор</span>
                                             </Button>
 
+                                            {/* Бутон Блок Репортер */}
                                             <Button 
                                                 onClick={() => handleAction(`/admin/user/${report.reporter?._id}/block`, 'put', 'Статус променен')} 
                                                 variant="outline" 
-                                                className="border-slate-200 font-black text-[10px] uppercase text-slate-600 py-5 rounded-xl hover:bg-slate-950 hover:text-white transition-all shadow-none"
+                                                className="flex-1 flex items-center justify-center gap-1 md:gap-2 border-slate-200 font-black text-[8px] md:text-[10px] uppercase text-slate-600 py-5 rounded-xl hover:bg-slate-950 hover:text-white transition-all shadow-none"
                                             >
-                                                <Ban size={14} className="mr-1"/> Блок Репортер
+                                                <Ban size={12} className="shrink-0" /> 
+                                                <span className="whitespace-nowrap">Блок Репортер</span>
                                             </Button>
                                         </div>
                                         
