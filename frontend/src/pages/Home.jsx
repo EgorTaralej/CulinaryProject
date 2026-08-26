@@ -51,7 +51,8 @@ const Home = () => {
                            filters.excludeTags.length > 0 || 
                            filters.cuisine !== 'Всички' || 
                            filters.diet !== 'Всички' || 
-                           filters.difficulty !== 'Всички';
+                           filters.difficulty !== 'Всички' ||
+                           filters.dishType !== 'Всички';
 
         if (!filters.query && !hasAdvanced) {
             handleClear();
@@ -65,6 +66,7 @@ const Home = () => {
             if (filters.cuisine !== 'Всички') params.append('cuisine', filters.cuisine);
             if (filters.diet !== 'Всички') params.append('diet', filters.diet);
             if (filters.difficulty !== 'Всички') params.append('difficulty', filters.difficulty);
+            if (filters.dishType && filters.dishType !== 'Всички') params.append('dishType', filters.dishType);
             if (filters.includeTags.length > 0) params.append('include', filters.includeTags.join(','));
             if (filters.excludeTags.length > 0) params.append('exclude', filters.excludeTags.join(','));
 

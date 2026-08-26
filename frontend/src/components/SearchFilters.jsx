@@ -10,6 +10,7 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
     const [showFilters, setShowFilters] = useState(false);
     
     const initialFilters = {
+        dishType: 'Всички',
         cuisine: 'Всички',
         diet: 'Всички',
         difficulty: 'Всички',
@@ -20,6 +21,7 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
     const [localFilters, setLocalFilters] = useState(initialFilters);
     const [tagInput, setTagInput] = useState({ include: '', exclude: '' });
 
+    const dishTypes = categories.filter(c => c.type === 'dishType'); // НОВО
     const cuisines = categories.filter(c => c.type === 'cuisine');
     const diets = categories.filter(c => c.type === 'diet');
     const difficulties = categories.filter(c => c.type === 'difficulty');
@@ -122,19 +124,29 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
                     </button>
 
                     <div className="space-y-6 mb-8 text-left">
-                        {['cuisine', 'diet', 'difficulty'].map(f => (
-                            <div key={f} className="space-y-3">
-                                <Label className="text-xs font-black uppercase text-slate-400 ml-1">{f === 'cuisine' ? 'Кухня' : f === 'diet' ? 'Диета' : 'Трудност'}</Label>
-                                {renderBadges(categories.filter(c => c.type === f), f)}
-                            </div>
-                        ))}
+                        <div className="space-y-3">
+                            <Label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Тип ястие</Label>
+                            {renderBadges(dishTypes, 'dishType')}
+                        </div>
+                        <div className="space-y-3">
+                            <Label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Кухня</Label>
+                            {renderBadges(cuisines, 'cuisine')}
+                        </div>
+                        <div className="space-y-3">
+                            <Label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Диета</Label>
+                            {renderBadges(diets, 'diet')}
+                        </div>
+                        <div className="space-y-3">
+                            <Label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Трудност</Label>
+                            {renderBadges(difficulties, 'difficulty')}
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-50">
                         <div className="space-y-3 text-left">
                             <Label className="text-xs font-black uppercase text-emerald-600 ml-1">Имам в хладилника</Label>
                             <Input 
-                                placeholder="Добави и Enter..." 
+                                placeholder="Добави съставка и Enter..." 
                                 className="bg-slate-50 border-none rounded-xl h-12 focus-visible:ring-0 shadow-none"
                                 value={tagInput.include}
                                 onChange={(e) => setTagInput({...tagInput, include: e.target.value})}
@@ -152,7 +164,7 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
                         <div className="space-y-3 text-left">
                             <Label className="text-xs font-black uppercase text-red-500 ml-1">БЕЗ съставка</Label>
                             <Input 
-                                placeholder="Добави и Enter..." 
+                                placeholder="Добави съставка и Enter..." 
                                 className="bg-slate-50 border-none rounded-xl h-12 focus-visible:ring-0 shadow-none"
                                 value={tagInput.exclude}
                                 onChange={(e) => setTagInput({...tagInput, exclude: e.target.value})}

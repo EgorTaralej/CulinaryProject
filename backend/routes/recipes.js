@@ -28,7 +28,7 @@ router.get('/search/advanced', async (req, res) => {
         const blockedUsers = await User.find({ isBlocked: true }).select('_id');
         const blockedIds = blockedUsers.map(u => u._id);
 
-        const { q, cuisine, diet, difficulty, include, exclude } = req.query;
+        const { q, cuisine, diet, difficulty, dishType, include, exclude } = req.query;
         let query = {
             status: 'approved',
             author: { $nin: blockedIds }
@@ -52,6 +52,9 @@ router.get('/search/advanced', async (req, res) => {
                 query['category.diet'] = diet;
             }
         } if (difficulty && difficulty !== 'Всички') query['category.difficulty'] = difficulty;
+        if (dishType && dishType !== 'Всички') {
+            query['category.dishType'] = dishType;
+        }
 
         if (include) {
             const includeStems = include.split(',').map(s => new RegExp(getStem(s), 'i'));
@@ -194,6 +197,21 @@ router.post('/', auth, async (req, res) => {
         console.error(err.message);
         res.status(500).send('Server Error');
     }
+});
+
+router.put('/:id', auth, async (req, res) => {
+    try {
+        let recipe = await Recipe.findById(req.params.id);
+        if (!recipe) return res.status(404).json({ message: "Не е намерена" });
+        if (recipe.author.toString() !== req.user.id) return res.status(401).json({ message: "Не сте автор" });
+
+        recipe = await Recipe.findByIdAndUpdate(
+            req.params.id, 
+            { $set: { ...req.body, status: 'pending' } },
+            { new: true }
+        );
+        res.json(recipe);
+    } catch (err) { res.status(500).send('Server Error'); }
 });
 
 module.exports = router;

@@ -25,6 +25,7 @@ const Search = () => {
     const [selectedCuisine, setSelectedCuisine] = useState('Всички');
     const [selectedDiet, setSelectedDiet] = useState('Всички');
     const [selectedDiff, setSelectedDiff] = useState('Всички');
+    const [selectedDishType, setSelectedDishType] = useState('Всички');
     const [includeTags, setIncludeTags] = useState([]);
     const [excludeTags, setExcludeTags] = useState([]);
     const [tagInput, setTagInput] = useState({ include: '', exclude: '' });
@@ -32,6 +33,7 @@ const Search = () => {
     const cuisines = categories.filter(c => c.type === 'cuisine');
     const diets = categories.filter(c => c.type === 'diet');
     const difficulties = categories.filter(c => c.type === 'difficulty');
+    const dishTypes = categories.filter(c => c.type === 'dishType');
 
     const filteredRecipes = useMemo(() => {
         return recipes.filter(recipe => {
@@ -42,6 +44,7 @@ const Search = () => {
             const matchesDiet = selectedDiet === 'Всички' || 
                                (selectedDiet === 'Без диета' ? !recipe.category?.diet : recipe.category?.diet === selectedDiet);
             const matchesDiff = selectedDiff === 'Всички' || recipe.category?.difficulty === selectedDiff;
+            const matchesDishType = selectedDishType === 'Всички' || recipe.category?.dishType === selectedDishType;
 
             const recipeIngs = recipe.ingredients.map(i => i.toLowerCase());
             const hasIncluded = includeTags.length === 0 || 
@@ -49,9 +52,9 @@ const Search = () => {
             const hasExcluded = excludeTags.some(tag => 
                 recipeIngs.some(ing => ing.includes(tag.toLowerCase())));
 
-            return matchesText && matchesCuisine && matchesDiet && matchesDiff && hasIncluded && !hasExcluded;
+            return matchesText && matchesCuisine && matchesDiet && matchesDiff && matchesDishType && hasIncluded && !hasExcluded;
         });
-    }, [searchQuery, selectedCuisine, selectedDiet, selectedDiff, includeTags, excludeTags, recipes]);
+    }, [searchQuery, selectedCuisine, selectedDiet, selectedDiff, selectedDishType, includeTags, excludeTags, recipes]);
 
     const handleAddTag = (type) => {
         const val = tagInput[type].trim();
@@ -70,6 +73,7 @@ const Search = () => {
         setSelectedCuisine('Всички');
         setSelectedDiet('Всички');
         setSelectedDiff('Всички');
+        setSelectedDishType('Всички');
         setIncludeTags([]);
         setExcludeTags([]);
     };
@@ -101,7 +105,16 @@ const Search = () => {
 
                 {showFilters && (
                     <Card className="max-w-3xl mx-auto p-8 border-none shadow-2xl rounded-[2.5rem] bg-white animate-in fade-in slide-in-from-top-4 duration-300">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mb-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left mb-8">
+                            <div className="space-y-3">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Тип ястие</Label>
+                                <div className="flex flex-wrap gap-2">
+                                    <button onClick={() => setSelectedDishType('Всички')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedDishType === 'Всички' ? 'bg-orange-500 text-white shadow-md' : 'bg-slate-50 text-slate-500'}`}>Всички</button>
+                                    {dishTypes.map(dt => (
+                                        <button key={dt._id} onClick={() => setSelectedDishType(dt.name)} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedDishType === dt.name ? 'bg-orange-500 text-white shadow-md' : 'bg-slate-50 text-slate-500'}`}>{dt.name}</button>
+                                    ))}
+                                </div>
+                            </div>
                             <div className="space-y-3">
                                 <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Кухня</Label>
                                 <div className="flex flex-wrap gap-2">
@@ -129,10 +142,18 @@ const Search = () => {
                                         <button key={diff._id} onClick={() => setSelectedDiff(diff.name)} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedDiff === diff.name ? 'bg-orange-500 text-white shadow-md' : 'bg-slate-50 text-slate-500'}`}>{diff.name}</button>
                                     ))}
                                 </div>
+                                <div className="space-y-3">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Тип ястие</Label>
+                                    <div className="flex flex-wrap gap-2">
+                                        <button onClick={() => setSelectedDishType('Всички')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedDishType === 'Всички' ? 'bg-orange-500 text-white' : 'bg-slate-50 text-slate-500'}`}>Всички</button>
+                                        {dishTypes.map(dt => (
+                                            <button key={dt._id} onClick={() => setSelectedDishType(dt.name)} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedDishType === dt.name ? 'bg-orange-500 text-white' : 'bg-slate-50 text-slate-500'}`}>{dt.name}</button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Тагове за включване/изключване */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-50">
                             <div className="space-y-3">
                                 <Label className="text-xs font-black uppercase text-emerald-600 ml-1">Имам в хладилника</Label>

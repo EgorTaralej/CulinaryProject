@@ -38,6 +38,7 @@ const CreateRecipe = () => {
     const cuisines = allCategories.filter(c => c.type === 'cuisine');
     const diets = allCategories.filter(c => c.type === 'diet');
     const difficulties = allCategories.filter(c => c.type === 'difficulty');
+    const dishTypes = allCategories.filter(c => c.type === 'dishType');
 
     const [category, setCategory] = useState({ 
         cuisine: cuisines[0]?.name || '', 
@@ -87,6 +88,18 @@ const CreateRecipe = () => {
                 title: <div className="flex items-center gap-2"><AlertCircle size={18} /> Липсваща информация</div>,
                 description: `Моля, добавете ${missing.join(", ")}.`
             });
+        }
+
+        if (videoUrl.trim() !== "") {
+            const youtubeRegex = /^(https?:\/\/)?(www\.|m\.)?(youtube\.com|youtu\.be)\/(watch\?v=|embed\/|v\/|shorts\/)?([a-zA-Z0-9_-]{11})(\S+)?$/;
+            
+            if (!youtubeRegex.test(videoUrl.trim())) {
+                return toast({
+                    variant: "destructive",
+                    title: "Невалиден видео линк",
+                    description: "Приемаме само линкове от YouTube (youtube.com, m.youtube.com или youtu.be)!"
+                });
+            }
         }
 
         setLoading(true);
@@ -229,6 +242,10 @@ const CreateRecipe = () => {
                             <div className="space-y-3">
                                 <Label className="text-xs font-black uppercase ml-1 text-slate-400">Трудност</Label>
                                 {renderBadges(difficulties, 'difficulty')}
+                            </div>
+                            <div className="space-y-3">
+                                <Label className="text-xs font-black uppercase ml-1 text-slate-400">Тип ястие</Label>
+                                {renderBadges(dishTypes, 'dishType')}
                             </div>
                         </div>
 

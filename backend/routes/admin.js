@@ -5,6 +5,8 @@ const admin = require('../middleware/admin');
 const Recipe = require('../models/Recipe');
 const Report = require('../models/Report');
 const User = require('../models/User');
+const Category = require('../models/Category');
+const Comment = require('../models/Comment');
 
 router.get('/dashboard', [auth, admin], async (req, res) => {
     try {
@@ -21,6 +23,7 @@ router.get('/dashboard', [auth, admin], async (req, res) => {
 
         res.json({ reports, pendingRecipes });
     } catch (err) {
+        console.error(err);
         res.status(500).send('Server Error');
     }
 });
@@ -44,11 +47,9 @@ router.put('/user/:id/block', [auth, admin], async (req, res) => {
         await user.save();
 
         await Recipe.deleteMany({ author: user._id });
-        const Comment = require('../models/Comment');
         await Comment.deleteMany({ author: user._id });
-        await User.updateMany({}, { $pull: { followers: user._id, following: user._id } });
+        await User.updateMany({}, { $pull: { followers: user._id, following: user._id } }); 
         if (reportId) {
-            const Report = require('../models/Report');
             await Report.findByIdAndUpdate(reportId, { status: 'resolved' });
         }
 
@@ -64,6 +65,25 @@ router.delete('/recipe/:id', [auth, admin], async (req, res) => {
         await Recipe.findByIdAndDelete(req.params.id);
         await Report.updateMany({ recipe: req.params.id }, { status: 'resolved' });
         res.json({ message: "Рецептата е изтрита" });
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
+
+router.delete('/comment/:id', [auth, admin], async (req, res) => {
+    try {
+        await Comment.findByIdAndDelete(req.params.id);
+        res.json({ message: "Коментарът е премахнат" });
+    } catch (err) { 
+        res.status(500).send('Server Error'); 
+    }
+});
+
+router.delete('/user/:id', [auth, admin], async (req, res) => {
+    try {
+        await User.findByIdAndDelete(req.params.id);
+        await Recipe.deleteMany({ author: req.params.id });
+        res.json({ message: "Потребителят и данните му са изтрити" });
     } catch (err) {
         res.status(500).send('Server Error');
     }

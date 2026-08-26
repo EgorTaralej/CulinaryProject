@@ -7,7 +7,7 @@ const categorySchema = new mongoose.Schema({
     },
     type: { 
         type: String, 
-        enum: ['cuisine', 'diet', 'difficulty'], 
+        enum: ['cuisine', 'diet', 'difficulty', 'dishType'], 
         required: true 
     }
 });

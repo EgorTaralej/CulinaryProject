@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useLoaderData, useRevalidator, Link, redirect } from 'react-router-dom';
 import api from '@/services/api';
 import { Card } from "@/components/ui/card";
@@ -6,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShieldAlert, Check, X, Trash2, Ban, Mail, Eye, Archive, CheckCircle2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 
 export const adminLoader = async () => {
     try {
@@ -26,7 +28,35 @@ const AdminDashboard = () => {
     const revalidator = useRevalidator();
     const { toast } = useToast();
 
-    const handleAction = async (url, method = 'put', successMsg, body = {}) => {
+    const [confirmData, setConfirmData] = useState({
+        isOpen: false,
+        type: '',
+        url: '',
+        method: 'put',
+        msg: '',
+        body: {},
+        title: '',
+        desc: '',
+        confirmText: 'Изтрий'
+    });
+
+    const triggerConfirm = (type, url, method, msg, body = {}, title, desc, confirmText = "Изтрий") => {
+        setConfirmData({ isOpen: true, type, url, method, msg, body, title, desc, confirmText });
+    };
+
+    const handleConfirmAction = async () => {
+        try {
+            await api[confirmData.method](confirmData.url, confirmData.body);
+            toast({ title: confirmData.msg });
+            revalidator.revalidate();
+        } catch (err) {
+            toast({ variant: "destructive", title: "Грешка при операцията" });
+        } finally {
+            setConfirmData({ ...confirmData, isOpen: false });
+        }
+    };
+
+    const handleDirectAction = async (url, method = 'put', successMsg, body = {}) => {
         try {
             await api[method](url, body);
             toast({ title: successMsg });
@@ -117,29 +147,27 @@ const AdminDashboard = () => {
                                     <div className="flex flex-col justify-center gap-4">
                                         <Button 
                                             disabled={isRecipeDeleted}
-                                            onClick={() => handleAction(`/admin/recipe/${report.recipe?._id}`, 'delete', 'Рецептата е изтрита')} 
-                                            className="w-full bg-red-500 hover:bg-slate-950 text-white font-black rounded-xl py-7 shadow-xl shadow-red-100 border-none transition-all disabled:bg-slate-300 disabled:text-slate-600 disabled:opacity-100 disabled:cursor-not-allowed disabled:shadow-none"
+                                            onClick={() => triggerConfirm('delete', `/admin/recipe/${report.recipe?._id}`, 'delete', 'Рецептата е изтрита', {}, 'Изтриване на рецепта', 'Наистина ли искате да премахнете тази рецепта?')}
+                                            className="w-full bg-red-500 hover:bg-slate-950 text-white font-black rounded-xl py-7 shadow-xl shadow-red-100 border-none transition-all disabled:bg-slate-400 disabled:text-slate-100 disabled:opacity-100 disabled:cursor-not-allowed disabled:shadow-none"
                                         >
-                                            <Trash2 className="mr-2" size={18}/> 
+                                            <Trash2 className="mr-2" size={18}/>
                                             {isRecipeDeleted ? "РЕЦЕПТАТА Е ИЗТРИТА" : "ИЗТРИЙ РЕЦЕПТАТА"}
                                         </Button>
                                         
                                         <div className="grid grid-cols-2 gap-2 md:gap-3">
-                                            {/* Бутон Блок Автор */}
                                             <Button 
                                                 disabled={isAuthorDeleted}
-                                                onClick={() => handleAction(`/admin/user/${report.recipe?.author?._id}/block`, 'put', 'Авторът е блокиран', { reportId: report._id })} 
+                                                onClick={() => triggerConfirm('block', `/admin/user/${report.recipe?.author?._id}/block`, 'put', 'Авторът е блокиран', { reportId: report._id }, 'Блокиране на автор', 'Това ще изтрие всички негови рецепти и коментари!', 'Блокирай')}
                                                 variant="outline" 
-                                                className="flex-1 flex items-center justify-center gap-1 md:gap-2 border-slate-200 font-black text-[8px] md:text-[10px] uppercase text-slate-600 py-5 rounded-xl transition-all shadow-none disabled:bg-slate-100 disabled:text-slate-400 disabled:opacity-100"
+                                                className="flex-1 flex items-center justify-center gap-1 md:gap-2 border-slate-200 font-black text-[8px] md:text-[10px] uppercase text-slate-600 py-5 rounded-xl hover:bg-slate-950 hover:text-white transition-all shadow-none transition-all shadow-none disabled:bg-slate-300 disabled:text-slate-600 disabled:opacity-100 disabled:cursor-not-allowed"
                                             >
                                                 <Ban size={12} className="shrink-0" /> 
                                                 <span className="whitespace-nowrap">Блок Автор</span>
                                             </Button>
 
-                                            {/* Бутон Блок Репортер */}
                                             <Button 
-                                                onClick={() => handleAction(`/admin/user/${report.reporter?._id}/block`, 'put', 'Статус променен')} 
-                                                variant="outline" 
+                                                onClick={() => triggerConfirm('block', `/admin/user/${report.reporter?._id}/block`, 'put', 'Репортерът е блокиран', {}, 'Блокиране на репортер', 'Сигурни ли сте, че искате да блокирате този потребител?', 'Блокирай')}
+                                                variant="outline"
                                                 className="flex-1 flex items-center justify-center gap-1 md:gap-2 border-slate-200 font-black text-[8px] md:text-[10px] uppercase text-slate-600 py-5 rounded-xl hover:bg-slate-950 hover:text-white transition-all shadow-none"
                                             >
                                                 <Ban size={12} className="shrink-0" /> 
@@ -148,12 +176,22 @@ const AdminDashboard = () => {
                                         </div>
                                         
                                         <Button 
-                                            onClick={() => handleAction(`/admin/report/${report._id}/resolve`, 'put', hasActionBeenTaken ? 'Случаят е приключен' : 'Сигналът е архивиран')} 
-                                            className={`w-full font-black text-[11px] uppercase py-7 rounded-xl transition-all border-none shadow-none ${
-                                                hasActionBeenTaken 
-                                                ? "bg-emerald-500 text-white hover:bg-slate-950 shadow-lg shadow-emerald-100" 
-                                                : "bg-slate-100 text-slate-400 hover:bg-slate-200"
-                                            }`}
+                                            onClick={() => triggerConfirm(
+                                                'resolve',
+                                                `/admin/report/${report._id}/resolve`,
+                                                'put',
+                                                hasActionBeenTaken ? 'Случаят е приключен' : 'Сигналът е архивиран',
+                                                {},
+                                                hasActionBeenTaken ? 'Архивиране на сигнал' : 'Игнориране на сигнал',
+                                                hasActionBeenTaken
+                                                    ? 'Случаят е обработен. Искате ли да премахнете този сигнал от списъка?'
+                                                    : 'Сигурни ли сте, че искате да игнорирате този сигнал без да предприемате мерки?',
+                                                hasActionBeenTaken ? "Отказ" : "Игнорирай"
+                                            )}
+                                            className={`w-full font-black text-[11px] uppercase py-7 rounded-xl transition-all border-none shadow-none ${hasActionBeenTaken
+                                                    ? "bg-emerald-500 text-white hover:bg-slate-950 shadow-lg shadow-emerald-100"
+                                                    : "bg-slate-50 text-slate-400 hover:bg-slate-100"
+                                                }`}
                                         >
                                             {hasActionBeenTaken ? (
                                                 <><CheckCircle2 size={18} className="mr-2" /> Затвори приключения сигнал</>
@@ -196,13 +234,22 @@ const AdminDashboard = () => {
                             
                             <div className="flex gap-3 pt-6 border-t border-slate-50 mt-auto">
                                 <Button 
-                                    onClick={() => handleAction(`/admin/recipe/${recipe._id}/approve`, 'put', 'Рецептата е одобрена!')} 
+                                    onClick={() => triggerConfirm(
+                                        'approve',
+                                        `/admin/recipe/${recipe._id}/approve`,
+                                        'put',
+                                        'Рецептата е одобрена!',
+                                        {},
+                                        'Одобряване на рецепта',
+                                        `Сигурни ли сте, че искате да одобрите "${recipe.title}"? Тя ще стане публично видима за всички потребители.`,
+                                        'Одобри'
+                                    )}
                                     className="flex-1 bg-emerald-500 hover:bg-slate-950 text-white font-black rounded-xl py-6 shadow-xl shadow-emerald-50 border-none transition-all active:scale-95"
                                 >
                                     <Check className="mr-2" size={18} /> ОДОБРИ
                                 </Button>
                                 <Button 
-                                    onClick={() => handleAction(`/admin/recipe/${recipe._id}`, 'delete', 'Рецептата е изтрита')} 
+                                    onClick={() => triggerConfirm('delete', `/admin/recipe/${recipe._id}`, 'delete', 'Рецептата е изтрита', {}, 'Отхвърляне', 'Сигурни ли сте, че искате да изтриете тази нова рецепта?')}
                                     className="bg-slate-100 hover:bg-red-500 hover:text-white text-slate-400 font-black rounded-xl py-6 px-6 transition-all border-none shadow-none"
                                 >
                                     <X size={18} />
@@ -217,6 +264,15 @@ const AdminDashboard = () => {
                     )}
                 </TabsContent>
             </Tabs>
+
+            <ConfirmationDialog
+                isOpen={confirmData.isOpen}
+                onOpenChange={(open) => setConfirmData({ ...confirmData, isOpen: open })}
+                onConfirm={handleConfirmAction}
+                title={confirmData.title}
+                description={confirmData.desc}
+                confirmText={confirmData.confirmText}
+            />
         </div>
     );
 };

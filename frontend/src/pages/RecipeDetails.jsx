@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, Send, PlayCircle, User, Utensils, Heart, Clock, Users, AlertCircle, X } from 'lucide-react';
+import { Star, Send, PlayCircle, User, Utensils, Heart, Clock, Users, AlertCircle, X, Trash2, UserX } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { ConfirmationDialog } from '@/components/ConfirmationDialog'; // Използваме твоя компонент
 
 export const recipeLoader = async ({ params }) => {
     try {
@@ -29,6 +30,11 @@ const RecipeDetails = () => {
     const [comments, setComments] = useState(initialComments);
     const [newComment, setNewComment] = useState('');
     const [isReportOpen, setIsReportOpen] = useState(false);
+    const [confirmData, setConfirmState] = useState({ 
+        isOpen: false, 
+        type: '',
+        data: null 
+    });
 
     const existingRating = recipe?.ratings?.find(r => (r.user._id || r.user) === user?.id);
     const [userRating, setUserRating] = useState(existingRating?.stars || 0);
@@ -53,6 +59,29 @@ const RecipeDetails = () => {
             </div>
         );
     }
+
+    const executeAction = async () => {
+        const { type, data } = confirmData;
+        try {
+            if (type === 'deleteRecipe') {
+                await api.delete(`/admin/recipe/${recipe._id}`);
+                toast({ title: "Рецептата е изтрита." });
+                navigate('/');
+            } else if (type === 'blockUser') {
+                await api.put(`/admin/user/${data.id}/block`);
+                toast({ title: `Потребителят ${data.username} е блокиран.` });
+                if (data.id === recipe.author._id) navigate('/');
+                else setComments(prev => prev.filter(c => c.author._id !== data.id));
+            } else if (type === 'deleteComment') {
+                await api.delete(`/admin/comment/${data}`);
+                setComments(prev => prev.filter(c => c._id !== data));
+                toast({ title: "Коментарът е премахнат." });
+            }
+        } catch (err) {
+            toast({ variant: "destructive", title: "Грешка при операцията" });
+        }
+        setConfirmState({ isOpen: false, type: '', data: null });
+    };
 
     const handleToggleFavorite = async () => {
         if (!user) return navigate('/login');
@@ -104,7 +133,19 @@ const RecipeDetails = () => {
     }, [recipe.videoUrl]);
 
     return (
-        <div className="max-w-5xl mx-auto py-10 px-4">
+        <div className="max-w-5xl mx-auto py-10 px-4 font-sans">
+            {user?.role === 'admin' && (
+                <div className="bg-red-50 border border-red-100 p-5 rounded-[2rem] mb-10 flex flex-wrap gap-4 items-center justify-between shadow-sm">
+                    <div className="flex items-center gap-2 text-red-600 font-black uppercase text-xs tracking-[0.2em]">
+                        <AlertCircle size={18} /> Админ Контрол
+                    </div>
+                    <div className="flex gap-3">
+                        <Button onClick={() => setConfirmState({ isOpen: true, type: 'deleteRecipe' })} variant="destructive" className="font-bold rounded-xl px-6">Изтрий рецептата</Button>
+                        <Button onClick={() => setConfirmState({ isOpen: true, type: 'blockUser', data: { id: recipe.author._id, username: recipe.author.username } })} variant="outline" className="font-bold rounded-xl border-red-200 text-red-600 hover:bg-red-600 hover:text-white">Блокирай автора</Button>
+                    </div>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16 items-center">
                 <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-100">
                     {recipe.mainImage ? <img src={recipe.mainImage} className="w-full h-full object-cover" alt={recipe.title} /> : <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold">Няма снимка</div>}
@@ -122,19 +163,19 @@ const RecipeDetails = () => {
                             className={`rounded-full w-14 h-14 p-0 transition-all border-2 shrink-0 ${
                                 isFavorite 
                                 ? 'text-orange-500 border-orange-500 bg-orange-50' 
-                                : 'text-slate-950 border-slate-200 bg-white hover:border-orange-500 hover:text-orange-500'
+                                : 'text-slate-950 border-slate-200 bg-white hover:border-orange-500'
                             }`}
                         >
                             <Heart fill={isFavorite ? "currentColor" : "none"} size={28} strokeWidth={2.5} />
                         </Button>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 flex-wrap">
                         <div className="flex items-center gap-1 text-amber-500 font-black text-xl">
                             <Star fill="currentColor" size={24} /> {recipe.averageRating.toFixed(1)}
                             <span className="text-sm text-slate-300 ml-1">({recipe.ratings?.length || 0})</span>
                         </div>
-                        <Separator orientation="vertical" className="h-6 bg-slate-200" />
+                        <Separator orientation="vertical" className="h-6 bg-slate-200 hidden sm:block" />
                         <Link to={`/profile/${recipe.author._id}`} className="flex items-center gap-2 text-slate-400 font-bold uppercase tracking-widest text-xs hover:text-orange-500 transition-colors">
                             <Avatar className="w-6 h-6 border border-slate-100">
                                 <AvatarImage src={recipe.author.profileImage} />
@@ -142,13 +183,23 @@ const RecipeDetails = () => {
                             </Avatar>
                             {recipe.author.username}
                         </Link>
-                        <Separator orientation="vertical" className="h-6 bg-slate-200" />
+                        <Separator orientation="vertical" className="h-6 bg-slate-200 hidden sm:block" />
                         <span className="text-slate-400 font-bold uppercase tracking-widest text-[12px]">
                             {publishDate}
                         </span>
                     </div>
-                    
-                    <p className="text-xl text-slate-500 leading-relaxed border-l-4 border-orange-400 pl-6">{recipe.description}</p>
+                    <div className="flex flex-wrap gap-3 mb-2">
+                    <div className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                        {recipe.category?.dishType}
+                    </div>
+                    <div className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                        {recipe.category?.cuisine}
+                    </div>
+                    <div className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                        {recipe.category?.difficulty}
+                    </div>
+                </div>
+                    <p className="text-xl text-slate-500 leading-relaxed border-l-4 border-orange-400 pl-6 italic">{recipe.description}</p>
 
                     <div className="bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm">
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
@@ -185,19 +236,21 @@ const RecipeDetails = () => {
                                         type="button" 
                                         onClick={() => handleRate(star)} 
                                         disabled={isAuthor} 
-                                        className={`p-2 rounded-xl transition-all ${userRating >= star ? 'text-orange-500 bg-orange-50' : 'text-slate-300 bg-slate-50'} ${isAuthor ? 'cursor-not-allowed opacity-50' : 'hover:bg-slate-100'}`}
+                                        className={`p-2 rounded-xl transition-all ${userRating >= star ? 'text-orange-500 bg-orange-50' : 'text-slate-300 bg-slate-50'}`}
                                     >
                                         <Star size={28} fill={userRating >= star ? "currentColor" : "none"} />
                                     </button>
                                 ))}
                             </div>
                         </div>
-                        <button 
-                            onClick={() => setIsReportOpen(true)} 
-                            className="text-slate-400 hover:text-red-500 text-xs font-bold flex items-center gap-1 transition-colors self-end pb-2"
-                        >
-                            <AlertCircle size={14} /> Докладвай
-                        </button>
+                        {user?.role !== 'admin' && (
+                            <button 
+                                onClick={() => setIsReportOpen(true)} 
+                                className="text-slate-400 hover:text-red-500 text-xs font-bold flex items-center gap-1 transition-colors self-end pb-2"
+                            >
+                                <AlertCircle size={14} /> Докладвай
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -247,19 +300,31 @@ const RecipeDetails = () => {
                 <form onSubmit={handleAddComment} className="relative group">
                     <Textarea
                         placeholder="Споделете вашето мнение..." 
-                        className="rounded-[2rem] p-6 md:p-8 pr-16 md:pr-24 bg-white shadow-2xl border-none text-base md:text-lg focus-visible:ring-2 focus-visible:ring-orange-500 min-h-[120px] md:min-h-[140px] transition-all resize-none shadow-inner font-medium"
+                        className="rounded-[2rem] p-8 pr-20 bg-white shadow-2xl border-none text-lg focus-visible:ring-2 focus-visible:ring-orange-500 min-h-[140px] transition-all resize-none shadow-inner font-medium"
                         value={newComment} 
                         onChange={(e) => setNewComment(e.target.value)}
                     />
                     <Button
                         type="submit"
-                        className="absolute bottom-5 right-3 md:bottom-6 md:right-6 bg-orange-500 hover:bg-slate-950 text-white rounded-2xl w-10 h-10 md:w-14 md:h-14 p-0 shadow-lg shadow-orange-200 transition-all active:scale-90 border-none">
-                        <Send size={18} className="md:size-6" />
+                        className="absolute bottom-6 right-6 bg-orange-500 hover:bg-slate-950 text-white rounded-2xl w-14 h-14 p-0 shadow-lg shadow-orange-200 transition-all active:scale-90 border-none">
+                        <Send size={24} />
                     </Button>
                 </form>
                 <div className="space-y-6">
                     {comments.map((c) => (
-                        <div key={c._id} className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50 flex gap-6 hover:shadow-md transition-shadow">
+                        <div key={c._id} className="relative bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50 flex gap-6 hover:shadow-md transition-shadow">
+                            {user?.role === 'admin' && (
+                                <div className="absolute top-6 right-6 flex gap-3">
+                                    <div className="group/tooltip relative">
+                                        <button onClick={() => setConfirmState({ isOpen: true, type: 'blockUser', data: { id: c.author._id, username: c.author.username } })} className="text-slate-200 hover:text-red-600 transition-colors"><UserX size={18} /></button>
+                                        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/tooltip:block bg-slate-900 text-white text-[10px] font-black uppercase px-2 py-1 rounded whitespace-nowrap shadow-xl">Блокирай автора</span>
+                                    </div>
+                                    <div className="group/tooltip relative">
+                                        <button onClick={() => setConfirmState({ isOpen: true, type: 'deleteComment', data: c._id })} className="text-slate-200 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+                                        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/tooltip:block bg-slate-900 text-white text-[10px] font-black uppercase px-2 py-1 rounded whitespace-nowrap shadow-xl">Изтрий коментара</span>
+                                    </div>
+                                </div>
+                            )}
                             <Avatar className="w-14 h-14 border-4 border-orange-50">
                                 <AvatarImage src={c.author.profileImage} />
                                 <AvatarFallback className="bg-orange-100 text-orange-600 font-black text-xl">{c.author.username[0].toUpperCase()}</AvatarFallback>
@@ -275,6 +340,22 @@ const RecipeDetails = () => {
                     ))}
                 </div>
             </div>
+
+            <ConfirmationDialog 
+                isOpen={confirmData.isOpen} 
+                onOpenChange={(open) => setConfirmState({ ...confirmData, isOpen: open })}
+                onConfirm={executeAction}
+                title={
+                    confirmData.type === 'deleteRecipe' ? "Изтриване на рецепта" :
+                    confirmData.type === 'blockUser' ? "Блокиране на потребител" : "Изтриване на коментар"
+                }
+                description={
+                    confirmData.type === 'deleteRecipe' ? "Сигурни ли сте, че искате да изтриете тази рецепта? Това действие е необратимо." :
+                    confirmData.type === 'blockUser' ? `Сигурни ли сте, че искате да блокирате ${confirmData.data?.username}? Всички негови данни ще бъдат премахнати.` :
+                    "Сигурни ли сте, че искате да премахнете този коментар?"
+                }
+                confirmText={confirmData.type === 'blockUser' ? "Блокирай" : "Изтрий"}
+            />
 
             {
                 isReportOpen && (

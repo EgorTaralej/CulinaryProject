@@ -24,7 +24,8 @@ const recipeSchema = new mongoose.Schema({
     category: {
         cuisine: { type: String, required: true },
         diet: { type: String, required: false },
-        difficulty: { type: String, required: true }
+        difficulty: { type: String, required: true },
+        dishType: { type: String, required: true }
     },
     prepTime: {
         type: String,
