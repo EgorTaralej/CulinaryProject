@@ -119,6 +119,23 @@ router.get('/:id', async (req, res) => {
         const recipe = await Recipe.findById(req.params.id).populate('author', ['username', 'profileImage']);
         if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
+        const token = req.header('x-auth-token');
+        let isAuthorized = false;
+
+        if (token) {
+            try {
+                const jwt = require('jsonwebtoken');
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                if (decoded.id === recipe.author._id.toString() || decoded.role === 'admin') {
+                    isAuthorized = true;
+                }
+            } catch (err) { }
+        }
+
+        if (recipe.status !== 'approved' && !isAuthorized) {
+            return res.status(403).json({ message: "Тази рецепта е в процес на модерация." });
+        }
+
         const comments = await Comment.find({ recipe: req.params.id })
             .populate('author', ['username', 'profileImage'])
             .sort({ createdAt: -1 });
@@ -175,7 +192,7 @@ router.post('/:id/comment', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
     try {
         const { title, description, mainImage, ingredients, steps, category, videoUrl, prepTime, cookTime, servings } = req.body;
-
+        const initialStatus = req.user.role === 'admin' ? 'approved' : 'pending';
         const newRecipe = new Recipe({
             title,
             description,
@@ -188,7 +205,7 @@ router.post('/', auth, async (req, res) => {
             cookTime,
             servings,
             author: req.user.id,
-            status: 'pending'
+            status: initialStatus
         });
 
         const recipe = await newRecipe.save();
@@ -203,15 +220,22 @@ router.put('/:id', auth, async (req, res) => {
     try {
         let recipe = await Recipe.findById(req.params.id);
         if (!recipe) return res.status(404).json({ message: "Не е намерена" });
-        if (recipe.author.toString() !== req.user.id) return res.status(401).json({ message: "Не сте автор" });
+        
+        if (recipe.author.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(401).json({ message: "Нямате права за редакцията" });
+        }
+
+        const newStatus = req.user.role === 'admin' ? 'approved' : 'pending';
 
         recipe = await Recipe.findByIdAndUpdate(
             req.params.id, 
-            { $set: { ...req.body, status: 'pending' } },
+            { $set: { ...req.body, status: newStatus } },
             { new: true }
         );
         res.json(recipe);
-    } catch (err) { res.status(500).send('Server Error'); }
+    } catch (err) { 
+        res.status(500).send('Server Error'); 
+    }
 });
 
 module.exports = router;

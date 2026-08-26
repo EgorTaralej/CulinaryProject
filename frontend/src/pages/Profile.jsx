@@ -23,6 +23,14 @@ const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
         year: 'numeric'
     });
 
+    const updateDate = new Date(recipe.updatedAt).toLocaleDateString('bg-BG', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+
+    const isUpdated = recipe.updatedAt && new Date(recipe.updatedAt).getTime() - new Date(recipe.createdAt).getTime() > 1000;
+
     return (
         <Link to={`/recipe/${recipe._id}`} className="flex w-full gap-4 md:gap-6 py-6 border-b border-slate-100 hover:bg-slate-50/50 transition-all group">
             <div className="w-28 h-28 md:w-40 md:h-40 flex-shrink-0 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-sm">
@@ -35,7 +43,7 @@ const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
 
             <div className="flex flex-col justify-center flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 mb-1 md:mb-2">
-                    <h3 className="text-lg md:text-2xl font-black text-slate-950 leading-tight line-clamp-2 break-all group-hover:text-orange-500 transition-colors tracking-tight uppercase">
+                    <h3 className="text-[17px] font-bold text-slate-800 leading-tight line-clamp-2 break-all overflow-wrap-anywhere">
                         {recipe.title}
                     </h3>
                     {isMyProfile && recipe.status === 'pending' && (
@@ -60,11 +68,16 @@ const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
                         <span className="text-slate-900">{recipe.author?.username}</span>
                     </div>
                     <div className="flex items-center gap-1.5 border-l border-slate-200 pl-4">
-                        <Clock size={14} className="text-orange-500" /> 
+                        <Clock size={14} className="text-orange-500" />
                         <span>{recipe.cookTime || '45'} МИН.</span>
                     </div>
-                    <div className="flex items-center gap-1.5 border-l border-slate-200 pl-4">
-                        <span>{date}</span>
+                    <div className="flex flex-col md:flex-row md:items-center gap-x-4 border-l border-slate-200 pl-4">
+                        <span title="Дата на създаване">{date}</span>
+                        {isUpdated && (
+                            <span className="text-orange-500 italic lowercase font-bold text-[9px] md:text-[10px]">
+                                (обновена на {updateDate})
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>

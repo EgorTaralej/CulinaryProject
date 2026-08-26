@@ -229,7 +229,7 @@ const AdminDashboard = () => {
                                     <Eye size={20} />
                                 </Link>
                             </div>
-                            <h3 className="text-xl font-black text-slate-950 mb-2 uppercase group-hover:text-orange-500 transition-colors tracking-tight line-clamp-1">{recipe.title}</h3>
+                            <h3 className="text-[17px] font-bold text-slate-800 leading-tight line-clamp-2 break-all overflow-wrap-anywhere">{recipe.title}</h3>
                             <p className="text-slate-500 text-sm line-clamp-2 mb-8 italic leading-relaxed">"{recipe.description}"</p>
                             
                             <div className="flex gap-3 pt-6 border-t border-slate-50 mt-auto">

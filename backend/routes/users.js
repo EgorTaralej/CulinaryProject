@@ -17,7 +17,7 @@ router.get('/me', auth, async (req, res) => {
 
         const myRecipes = await Recipe.find({ author: req.user.id })
             .populate('author', ['username', 'profileImage'])
-            .sort({ createdAt: -1 });
+            .sort({ updatedAt: -1 });
 
         res.json({ user, myRecipes });
     } catch (err) {
@@ -43,7 +43,7 @@ router.get('/:id', auth, async (req, res) => {
             status: 'approved'
         })
             .populate('author', ['username', 'profileImage'])
-            .sort({ createdAt: -1 });
+            .sort({ updatedAt: -1 });
 
         res.json({ user, recipes });
     } catch (err) {

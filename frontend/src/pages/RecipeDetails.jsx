@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, Send, PlayCircle, User, Utensils, Heart, Clock, Users, AlertCircle, X, Trash2, UserX } from 'lucide-react';
+import { Star, Send, PlayCircle, Utensils, Heart, Clock, Users, AlertCircle, X, Trash2, Pen, UserX } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
-import { ConfirmationDialog } from '@/components/ConfirmationDialog'; // Използваме твоя компонент
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 
 export const recipeLoader = async ({ params }) => {
     try {
@@ -51,11 +51,17 @@ const RecipeDetails = () => {
         year: 'numeric'
     }) : "";
 
+    const updateDate = recipe ? new Date(recipe.updatedAt).toLocaleDateString('bg-BG', { 
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    }) : "";
+
     if (!recipe || !recipe.title) {
         return (
             <div className="max-w-4xl mx-auto py-32 text-center">
-                <h1 className="text-3xl font-black text-slate-300 uppercase tracking-tighter">Тази рецепта беше изтрита</h1>
-                <Link to="/" className="text-orange-500 font-bold hover:underline mt-4 inline-block">Върни се в началото</Link>
+                <h1 className="text-3xl font-black text-slate-300 uppercase tracking-tighter">Тази рецепта е недостъпна</h1>
+                <Link to="/" className="text-slate-600 hover:text-orange-500 transition-colors font-bold text-sm mt-4 inline-block">Върни се в началото</Link>
             </div>
         );
     }
@@ -81,6 +87,17 @@ const RecipeDetails = () => {
             toast({ variant: "destructive", title: "Грешка при операцията" });
         }
         setConfirmState({ isOpen: false, type: '', data: null });
+    };
+
+    const handleApprove = async () => {
+        try {
+            await api.put(`/admin/recipe/${recipe._id}/approve`);
+            const updatedRecipe = { ...recipe, status: 'approved' };
+            setRecipe(updatedRecipe);
+            toast({ title: "Рецептата е одобрена успешно!" });
+        } catch (err) {
+            toast({ variant: "destructive", title: "Грешка при одобрение" });
+        }
     };
 
     const handleToggleFavorite = async () => {
@@ -126,6 +143,8 @@ const RecipeDetails = () => {
         } catch (err) { toast({ variant: "destructive", title: "Грешка" }); }
     };
 
+    const isUpdated = recipe && recipe.createdAt !== recipe.updatedAt;
+
     const videoId = useMemo(() => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         const match = recipe.videoUrl?.match(regExp);
@@ -134,13 +153,32 @@ const RecipeDetails = () => {
 
     return (
         <div className="max-w-5xl mx-auto py-10 px-4 font-sans">
+            
+            {isAuthor && recipe.status === 'pending' && (
+                <div className="bg-orange-50 border-2 border-dashed border-orange-200 p-3 rounded-[2rem] mb-10 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-orange-500 p-2 rounded-full text-white">
+                            <Clock size={20} />
+                        </div>
+                        <div>
+                            <p className="font-black text-orange-700 uppercase text-xs tracking-widest">В процес на одобрение</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {user?.role === 'admin' && (
-                <div className="bg-red-50 border border-red-100 p-5 rounded-[2rem] mb-10 flex flex-wrap gap-4 items-center justify-between shadow-sm">
-                    <div className="flex items-center gap-2 text-red-600 font-black uppercase text-xs tracking-[0.2em]">
+                <div className="bg-red-50 border border-red-100 p-5 rounded-[2rem] mb-10 flex flex-wrap gap-4 items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="flex items-center gap-2 text-red-600 font-black uppercase text-xs tracking-widest italic">
                         <AlertCircle size={18} /> Админ Контрол
                     </div>
-                    <div className="flex gap-3">
-                        <Button onClick={() => setConfirmState({ isOpen: true, type: 'deleteRecipe' })} variant="destructive" className="font-bold rounded-xl px-6">Изтрий рецептата</Button>
+                    <div className="flex gap-2">
+                        {recipe.status !== 'approved' && (
+                            <Button onClick={handleApprove} variant="outline" className="font-bold rounded-xl border-emerald-200 text-emerald-500 hover:bg-emerald-500 hover:text-white">
+                                {recipe.createdAt === recipe.updatedAt ? "Одобри рецептата" : "Одобри промените"}
+                            </Button>
+                        )}
+                        <Button onClick={() => setConfirmState({ isOpen: true, type: 'deleteRecipe' })} variant="outline" className="font-bold rounded-xl hover:bg-slate-900 hover:text-white">Изтрий рецептата</Button>
                         <Button onClick={() => setConfirmState({ isOpen: true, type: 'blockUser', data: { id: recipe.author._id, username: recipe.author.username } })} variant="outline" className="font-bold rounded-xl border-red-200 text-red-600 hover:bg-red-600 hover:text-white">Блокирай автора</Button>
                     </div>
                 </div>
@@ -184,10 +222,28 @@ const RecipeDetails = () => {
                             {recipe.author.username}
                         </Link>
                         <Separator orientation="vertical" className="h-6 bg-slate-200 hidden sm:block" />
-                        <span className="text-slate-400 font-bold uppercase tracking-widest text-[12px]">
-                            {publishDate}
-                        </span>
+                        <div className="flex flex-col gap-0.5">
+                            <span className="text-slate-400 font-bold uppercase text-[11px] tracking-tight">
+                                Създадена: {publishDate}
+                            </span>
+                            {isUpdated && (
+                            <span className="text-slate-400 font-bold uppercase text-[11px] tracking-tight">
+                                    Последна промяна: {updateDate}
+                                </span>
+                            )}
+                        </div>
                     </div>
+
+                    {isAuthor && (
+                        <Link 
+                            to={`/recipe/${recipe._id}/edit`} 
+                            className="w-fit flex items-center gap-2 bg-slate-950 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-orange-500 transition-colors shadow-lg"
+                        >
+                            <Pen size={16} className="rotate-180" />
+                            <span>Редактирай рецептата</span>
+                        </Link>
+                    )}
+
                     <div className="flex flex-wrap gap-3 mb-2">
                     <div className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest">
                         {recipe.category?.dishType}

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { AuthContext } from '@/context/AuthContext';
 import { useNavigate, useLoaderData } from 'react-router-dom';
 import api from '@/services/api';
 import { Button } from "@/components/ui/button";
@@ -15,25 +16,27 @@ export const categoriesLoader = async () => {
     return res.data;
 };
 
-const CreateRecipe = () => {
+const CreateRecipe = ({ initialData = null }) => {
     const navigate = useNavigate();
     const { toast } = useToast();
-    const allCategories = useLoaderData() || [];
+    const { user } = useContext(AuthContext); 
+    const loaderData = useLoaderData();
+    const allCategories = Array.isArray(loaderData) ? loaderData : (loaderData?.categories || []);
     
     const [loading, setLoading] = useState(false);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [stepToDelete, setStepToDelete] = useState(null);
 
-    const [mainImage, setMainImage] = useState('');
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [ingredients, setIngredients] = useState(['']);
-    const [steps, setSteps] = useState([{ text: '', image: '' }]);
-    const [videoUrl, setVideoUrl] = useState('');
+    const [mainImage, setMainImage] = useState(initialData?.mainImage || '');
+    const [title, setTitle] = useState(initialData?.title || '');
+    const [description, setDescription] = useState(initialData?.description || '');
+    const [ingredients, setIngredients] = useState(initialData?.ingredients || ['']);
+    const [steps, setSteps] = useState(initialData?.steps || [{ text: '', image: '' }]);
+    const [videoUrl, setVideoUrl] = useState(initialData?.videoUrl || '');
     
-    const [prepTime, setPrepTime] = useState('');
-    const [cookTime, setCookTime] = useState('');
-    const [servings, setServings] = useState('');
+    const [prepTime, setPrepTime] = useState(initialData?.prepTime || '');
+    const [cookTime, setCookTime] = useState(initialData?.cookTime || '');
+    const [servings, setServings] = useState(initialData?.servings || '');
 
     const cuisines = allCategories.filter(c => c.type === 'cuisine');
     const diets = allCategories.filter(c => c.type === 'diet');
@@ -41,9 +44,10 @@ const CreateRecipe = () => {
     const dishTypes = allCategories.filter(c => c.type === 'dishType');
 
     const [category, setCategory] = useState({ 
-        cuisine: cuisines[0]?.name || '', 
-        diet: '', 
-        difficulty: difficulties[0]?.name || '' 
+        cuisine: initialData?.category?.cuisine || cuisines[0]?.name || '', 
+        diet: initialData?.category?.diet || '', 
+        difficulty: initialData?.category?.difficulty || difficulties[0]?.name || '',
+        dishType: initialData?.category?.dishType || dishTypes[0]?.name || 'Друго'
     });
 
     const handleImageUpload = async (file, callback) => {
@@ -72,6 +76,8 @@ const CreateRecipe = () => {
         });
     };
 
+    const isNumeric = (val) => /^\d+$/.test(val);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         
@@ -81,6 +87,9 @@ const CreateRecipe = () => {
         if (!description.trim()) missing.push("описание на рецептата");
         if (ingredients.filter(ing => ing.trim()).length === 0) missing.push("поне една съставка");
         if (!steps[0].text.trim()) missing.push("описание на първа стъпка");
+        if (prepTime && !isNumeric(prepTime)) missing.push("валидно число за подготовка");
+        if (cookTime && !isNumeric(cookTime)) missing.push("валидно число за готвене");
+        if (servings && !isNumeric(servings)) missing.push("валидно число за порции");
 
         if (missing.length > 0) {
             return toast({
@@ -104,23 +113,28 @@ const CreateRecipe = () => {
 
         setLoading(true);
         try {
-            await api.post('/recipes', {
-                title, 
-                description, 
-                mainImage, 
-                ingredients, 
-                steps, 
-                category, 
-                videoUrl,
-                prepTime,
-                cookTime,
-                servings
+        const recipeData = { title, description, mainImage, ingredients, steps, category, videoUrl, prepTime, cookTime, servings };
+        const isAdmin = user?.role === 'admin';
+
+        if (initialData) {
+            await api.put(`/recipes/${initialData._id}`, recipeData);
+            toast({ 
+                title: isAdmin ? "Рецептата е обновена!" : "Промените са запазени!", 
+                description: isAdmin ? "Промените са видими веднага." : "Изчакайте одобрение от администратор." 
             });
-            toast({ title: "Рецептата е изпратена за одобрение!" });
-            navigate('/profile');
-        } catch (err) { toast({ variant: "destructive", title: "Грешка при запис" }); }
-        finally { setLoading(false); }
-    };
+        } else {
+            await api.post('/recipes', recipeData);
+            toast({ 
+                title: isAdmin ? "Рецептата е публикувана!" : "Рецептата е изпратена за одобрение!", 
+            });
+        }
+        navigate('/profile');
+    } catch (err) { 
+        toast({ variant: "destructive", title: "Грешка при запис" }); 
+    } finally { 
+        setLoading(false); 
+    }
+};
 
     const renderBadges = (items, currentField) => (
         <div className="flex flex-wrap gap-2">
@@ -156,7 +170,9 @@ const CreateRecipe = () => {
 
     return (
         <div className="max-w-5xl mx-auto py-12 px-4">
-            <h1 className="text-4xl font-black text-slate-950 mb-10 tracking-tight">Нова рецепта</h1>
+            <h1 className="text-4xl font-black text-slate-950 mb-10 tracking-tight">
+                {initialData ? "Редактиране на рецепта" : "Нова рецепта"}
+            </h1>
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 <div className="lg:col-span-2 space-y-8">
@@ -197,7 +213,8 @@ const CreateRecipe = () => {
                                     <Clock size={12} /> Подготовка (мин.)
                                 </Label>
                                 <Input 
-                                    type="text" 
+                                    type="number" 
+                                    min="0"
                                     placeholder="напр. 20" 
                                     className="rounded-xl bg-slate-50 border-none h-12"
                                     value={prepTime} 
@@ -209,7 +226,8 @@ const CreateRecipe = () => {
                                     <Clock size={12} /> Готвене (мин.)
                                 </Label>
                                 <Input 
-                                    type="text" 
+                                    type="number"
+                                    min="0"
                                     placeholder="напр. 45" 
                                     className="rounded-xl bg-slate-50 border-none h-12"
                                     value={cookTime} 
@@ -221,7 +239,8 @@ const CreateRecipe = () => {
                                     <Users size={12} /> Порции
                                 </Label>
                                 <Input 
-                                    type="text" 
+                                    type="number"
+                                    min="0"
                                     placeholder="напр. 4" 
                                     className="rounded-xl bg-slate-50 border-none h-12"
                                     value={servings} 
@@ -356,7 +375,7 @@ const CreateRecipe = () => {
                         disabled={loading} 
                         className="w-full bg-orange-500 hover:bg-slate-950 text-white py-8 rounded-2xl font-bold text-xl shadow-lg transition-all flex items-center justify-center border-none"
                     >
-                        {loading ? <Loader2 className="animate-spin" /> : 'Публикувай рецептата'}
+                        {loading ? <Loader2 className="animate-spin" /> : (initialData ? 'Запази промените' : 'Публикувай рецептата')}
                     </Button>
                 </div>
             </form>

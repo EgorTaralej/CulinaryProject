@@ -7,8 +7,9 @@ import Register from '@/pages/Register';
 import Home, { homeLoader } from '@/pages/Home';
 import RecipeDetails, { recipeLoader } from '@/pages/RecipeDetails';
 import CreateRecipe, { categoriesLoader } from '@/pages/CreateRecipe';
+import EditRecipe, { editRecipeLoader } from '@/pages/EditRecipe';
 import Profile, { profileLoader } from '@/pages/Profile';
-import AdminDashboard, { adminLoader } from '@/pages/AdminDashboard'; // Импорт на лоудъра
+import AdminDashboard, { adminLoader } from '@/pages/AdminDashboard';
 import { Toaster } from "@/components/ui/toaster";
 
 const Layout = () => {
@@ -62,6 +63,11 @@ const router = createBrowserRouter([
         path: "create-recipe",
         element: <ProtectedRoute><CreateRecipe /></ProtectedRoute>,
         loader: categoriesLoader
+      },
+      { 
+        path: "recipe/:id/edit", 
+        element: <ProtectedRoute><EditRecipe /></ProtectedRoute>, 
+        loader: editRecipeLoader 
       },
       {
         path: "profile/:id?",

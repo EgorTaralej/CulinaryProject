@@ -48,7 +48,7 @@ router.put('/user/:id/block', [auth, admin], async (req, res) => {
 
         await Recipe.deleteMany({ author: user._id });
         await Comment.deleteMany({ author: user._id });
-        await User.updateMany({}, { $pull: { followers: user._id, following: user._id } }); 
+        await User.updateMany({}, { $pull: { followers: user._id, following: user._id } });
         if (reportId) {
             await Report.findByIdAndUpdate(reportId, { status: 'resolved' });
         }
@@ -74,8 +74,8 @@ router.delete('/comment/:id', [auth, admin], async (req, res) => {
     try {
         await Comment.findByIdAndDelete(req.params.id);
         res.json({ message: "Коментарът е премахнат" });
-    } catch (err) { 
-        res.status(500).send('Server Error'); 
+    } catch (err) {
+        res.status(500).send('Server Error');
     }
 });
 
