@@ -238,4 +238,28 @@ router.put('/:id', auth, async (req, res) => {
     }
 });
 
+router.delete('/:id', auth, async (req, res) => {
+    try {
+        const recipe = await Recipe.findById(req.params.id);
+
+        if (!recipe) {
+            return res.status(404).json({ message: "Рецептата не е намерена." });
+        }
+
+        if (recipe.author.toString() !== req.user.id) {
+            return res.status(401).json({ message: "Нямате права за това действие." });
+        }
+
+        await Recipe.findByIdAndDelete(req.params.id);
+
+        await Report.updateMany({ recipe: req.params.id }, { status: 'resolved' });
+
+        await Comment.deleteMany({ recipe: req.params.id });
+
+        res.json({ message: "Рецептата беше изтрита успешно." });
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;

@@ -25,22 +25,22 @@ const RecipeDetails = () => {
     const { toast } = useToast();
     const { user, refreshUser } = useContext(AuthContext);
     const navigate = useNavigate();
-    
+
     const [recipe, setRecipe] = useState(initialRecipe);
     const [comments, setComments] = useState(initialComments);
     const [newComment, setNewComment] = useState('');
     const [isReportOpen, setIsReportOpen] = useState(false);
-    const [confirmData, setConfirmState] = useState({ 
-        isOpen: false, 
+    const [confirmData, setConfirmState] = useState({
+        isOpen: false,
         type: '',
-        data: null 
+        data: null
     });
 
     const existingRating = recipe?.ratings?.find(r => (r.user._id || r.user) === user?.id);
     const [userRating, setUserRating] = useState(existingRating?.stars || 0);
 
     const isAuthor = user?.id === recipe?.author?._id;
-    
+
     const isFavorite = useMemo(() => {
         return user?.favorites?.some(fav => (fav._id || fav) === recipe?._id);
     }, [user?.favorites, recipe?._id]);
@@ -51,7 +51,7 @@ const RecipeDetails = () => {
         year: 'numeric'
     }) : "";
 
-    const updateDate = recipe ? new Date(recipe.updatedAt).toLocaleDateString('bg-BG', { 
+    const updateDate = recipe ? new Date(recipe.updatedAt).toLocaleDateString('bg-BG', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
@@ -70,9 +70,10 @@ const RecipeDetails = () => {
         const { type, data } = confirmData;
         try {
             if (type === 'deleteRecipe') {
-                await api.delete(`/admin/recipe/${recipe._id}`);
-                toast({ title: "Рецептата е изтрита." });
-                navigate('/');
+                const url = user.role === 'admin' ? `/admin/recipe/${recipe._id}` : `/recipes/${recipe._id}`;
+                await api.delete(url);
+                toast({ title: "Рецептата е изтрита успешно." });
+                navigate('/profile');
             } else if (type === 'blockUser') {
                 await api.put(`/admin/user/${data.id}/block`);
                 toast({ title: `Потребителят ${data.username} е блокиран.` });
@@ -105,8 +106,8 @@ const RecipeDetails = () => {
         try {
             await api.put(`/users/favorite/${recipe._id}`);
             await refreshUser();
-            
-            toast({ 
+
+            toast({
                 title: !isFavorite ? "Запазена в любими!" : "Премахната от любими.",
                 duration: 2000
             });
@@ -136,7 +137,7 @@ const RecipeDetails = () => {
             setRecipe({
                 ...recipe,
                 averageRating: res.data.averageRating,
-                ratings: res.data.ratings 
+                ratings: res.data.ratings
             });
             setUserRating(stars);
             toast({ title: "Оценката е приета!" });
@@ -153,7 +154,7 @@ const RecipeDetails = () => {
 
     return (
         <div className="max-w-5xl mx-auto py-10 px-4 font-sans">
-            
+
             {isAuthor && recipe.status === 'pending' && (
                 <div className="bg-orange-50 border-2 border-dashed border-orange-200 p-3 rounded-[2rem] mb-10 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
@@ -194,15 +195,14 @@ const RecipeDetails = () => {
                         <h1 className="text-3xl md:text-5xl font-black text-slate-950 leading-[1.1] break-all whitespace-normal overflow-wrap-anywhere flex-1 mr-4">
                             {recipe.title}
                         </h1>
-                        <Button 
+                        <Button
                             type="button"
                             onClick={handleToggleFavorite}
-                            variant="ghost" 
-                            className={`rounded-full w-14 h-14 p-0 transition-all border-2 shrink-0 ${
-                                isFavorite 
-                                ? 'text-orange-500 border-orange-500 bg-orange-50' 
-                                : 'text-slate-950 border-slate-200 bg-white hover:border-orange-500'
-                            }`}
+                            variant="ghost"
+                            className={`rounded-full w-14 h-14 p-0 transition-all border-2 shrink-0 ${isFavorite
+                                    ? 'text-orange-500 border-orange-500 bg-orange-50'
+                                    : 'text-slate-950 border-slate-200 bg-white hover:border-orange-500'
+                                }`}
                         >
                             <Heart fill={isFavorite ? "currentColor" : "none"} size={28} strokeWidth={2.5} />
                         </Button>
@@ -227,7 +227,7 @@ const RecipeDetails = () => {
                                 Създадена: {publishDate}
                             </span>
                             {isUpdated && (
-                            <span className="text-slate-400 font-bold uppercase text-[11px] tracking-tight">
+                                <span className="text-slate-400 font-bold uppercase text-[11px] tracking-tight">
                                     Последна промяна: {updateDate}
                                 </span>
                             )}
@@ -235,45 +235,57 @@ const RecipeDetails = () => {
                     </div>
 
                     {isAuthor && (
-                        <Link 
-                            to={`/recipe/${recipe._id}/edit`} 
-                            className="w-fit flex items-center gap-2 bg-slate-950 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-orange-500 transition-colors shadow-lg"
-                        >
-                            <Pen size={16} className="rotate-180" />
-                            <span>Редактирай рецептата</span>
-                        </Link>
+                        <div className="flex gap-3 mt-2">
+
+                            <Link
+                                to={`/recipe/${recipe._id}/edit`}
+                                className="w-fit flex items-center gap-2 bg-slate-950 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-orange-500 transition-colors shadow-lg"
+                            >
+                                <Pen size={16} className="rotate-180" />
+                                <span>Редактирай рецептата</span>
+                            </Link>
+
+                            <Button
+                                onClick={() => setConfirmState({ isOpen: true, type: 'deleteRecipe' })}
+                                className="w-fit border-slate-200 flex items-center gap-2 bg-slate-950 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-orange-500 transition-colors shadow-lg h-auto"
+                            >
+                                <Trash2 size={14} className="mr-1" />
+                                <span>Изтрий рецепта</span>
+                            </Button>
+                        </div>
+
                     )}
 
                     <div className="flex flex-wrap gap-3 mb-2">
-                    <div className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest">
-                        {recipe.category?.dishType}
+                        <div className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                            {recipe.category?.dishType}
+                        </div>
+                        <div className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                            {recipe.category?.cuisine}
+                        </div>
+                        <div className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                            {recipe.category?.difficulty}
+                        </div>
                     </div>
-                    <div className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest">
-                        {recipe.category?.cuisine}
-                    </div>
-                    <div className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest">
-                        {recipe.category?.difficulty}
-                    </div>
-                </div>
                     <p className="text-xl text-slate-500 leading-relaxed border-l-4 border-orange-400 pl-6 italic">{recipe.description}</p>
 
                     <div className="bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm">
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                             <div className="space-y-1">
                                 <p className="text-slate-900 font-black text-sm uppercase tracking-tight flex items-center gap-1.5">
-                                    <Clock size={16} className="text-orange-500"/> Подготовка
+                                    <Clock size={16} className="text-orange-500" /> Подготовка
                                 </p>
                                 <p className="text-slate-500 font-bold text-lg">{recipe.prepTime || "0"} мин.</p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-slate-900 font-black text-sm uppercase tracking-tight flex items-center gap-1.5">
-                                    <Clock size={16} className="text-orange-500"/> Готвене
+                                    <Clock size={16} className="text-orange-500" /> Готвене
                                 </p>
                                 <p className="text-slate-500 font-bold text-lg">{recipe.cookTime || "0"} мин.</p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-slate-900 font-black text-sm uppercase tracking-tight flex items-center gap-1.5">
-                                    <Users size={16} className="text-orange-500"/> Порции
+                                    <Users size={16} className="text-orange-500" /> Порции
                                 </p>
                                 <p className="text-slate-500 font-bold text-lg">{recipe.servings || "1"}</p>
                             </div>
@@ -282,16 +294,16 @@ const RecipeDetails = () => {
 
                     <div className="flex justify-between items-center pt-4 border-t border-slate-100">
                         <div className="flex flex-col gap-2">
-                             <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                                 {isAuthor ? "Не можете да оценявате собствена рецепта" : "Вашата оценка"}
                             </p>
                             <div className="flex gap-2">
                                 {[1, 2, 3, 4, 5].map((star) => (
-                                    <button 
-                                        key={star} 
-                                        type="button" 
-                                        onClick={() => handleRate(star)} 
-                                        disabled={isAuthor} 
+                                    <button
+                                        key={star}
+                                        type="button"
+                                        onClick={() => handleRate(star)}
+                                        disabled={isAuthor}
                                         className={`p-2 rounded-xl transition-all ${userRating >= star ? 'text-orange-500 bg-orange-50' : 'text-slate-300 bg-slate-50'}`}
                                     >
                                         <Star size={28} fill={userRating >= star ? "currentColor" : "none"} />
@@ -300,8 +312,8 @@ const RecipeDetails = () => {
                             </div>
                         </div>
                         {user?.role !== 'admin' && (
-                            <button 
-                                onClick={() => setIsReportOpen(true)} 
+                            <button
+                                onClick={() => setIsReportOpen(true)}
                                 className="text-slate-400 hover:text-red-500 text-xs font-bold flex items-center gap-1 transition-colors self-end pb-2"
                             >
                                 <AlertCircle size={14} /> Докладвай
@@ -355,9 +367,9 @@ const RecipeDetails = () => {
                 <h2 className="text-3xl font-black text-slate-950">Коментари <span className="text-orange-500">({comments.length})</span></h2>
                 <form onSubmit={handleAddComment} className="relative group">
                     <Textarea
-                        placeholder="Споделете вашето мнение..." 
+                        placeholder="Споделете вашето мнение..."
                         className="rounded-[2rem] p-8 pr-20 bg-white shadow-2xl border-none text-lg focus-visible:ring-2 focus-visible:ring-orange-500 min-h-[140px] transition-all resize-none shadow-inner font-medium"
-                        value={newComment} 
+                        value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                     />
                     <Button
@@ -397,18 +409,18 @@ const RecipeDetails = () => {
                 </div>
             </div>
 
-            <ConfirmationDialog 
-                isOpen={confirmData.isOpen} 
+            <ConfirmationDialog
+                isOpen={confirmData.isOpen}
                 onOpenChange={(open) => setConfirmState({ ...confirmData, isOpen: open })}
                 onConfirm={executeAction}
                 title={
                     confirmData.type === 'deleteRecipe' ? "Изтриване на рецепта" :
-                    confirmData.type === 'blockUser' ? "Блокиране на потребител" : "Изтриване на коментар"
+                        confirmData.type === 'blockUser' ? "Блокиране на потребител" : "Изтриване на коментар"
                 }
                 description={
                     confirmData.type === 'deleteRecipe' ? "Сигурни ли сте, че искате да изтриете тази рецепта? Това действие е необратимо." :
-                    confirmData.type === 'blockUser' ? `Сигурни ли сте, че искате да блокирате ${confirmData.data?.username}? Всички негови данни ще бъдат премахнати.` :
-                    "Сигурни ли сте, че искате да премахнете този коментар?"
+                        confirmData.type === 'blockUser' ? `Сигурни ли сте, че искате да блокирате ${confirmData.data?.username}? Всички негови данни ще бъдат премахнати.` :
+                            "Сигурни ли сте, че искате да премахнете този коментар?"
                 }
                 confirmText={confirmData.type === 'blockUser' ? "Блокирай" : "Изтрий"}
             />
