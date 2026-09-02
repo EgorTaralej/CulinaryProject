@@ -47,10 +47,10 @@ RecipeShare е пълнофункционално уеб приложение (F
    CLOUDINARY_API_SECRET=вашата_тайна
    ```
 
-  Стартирайте сървъра:
-```bash
-npm start
-```
+     Стартирайте сървъра:
+   ```bash
+   npm start
+   ```
 3. **Настройка на Фронтенд:**
    ```bash
     cd ../frontend
