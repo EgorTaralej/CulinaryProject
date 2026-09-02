@@ -37,15 +37,15 @@ RecipeShare е пълнофункционално уеб приложение (F
     cd backend
     npm install
    ```
-  Създайте .env файл в папка backend и добавете своите ключове:
-```sh
-PORT=5000
-MONGO_URI=вашият_mongodb_connection_string
-JWT_SECRET=вашият_таен_ключ
-CLOUDINARY_CLOUD_NAME=вашето_име
-CLOUDINARY_API_KEY=вашият_ключ
-CLOUDINARY_API_SECRET=вашата_тайна
-```
+     Създайте .env файл в папка backend и добавете своите ключове:
+   ```sh
+   PORT=5000
+   MONGO_URI=вашият_mongodb_connection_string
+   JWT_SECRET=вашият_таен_ключ
+   CLOUDINARY_CLOUD_NAME=вашето_име
+   CLOUDINARY_API_KEY=вашият_ключ
+   CLOUDINARY_API_SECRET=вашата_тайна
+   ```
 
   Стартирайте сървъра:
 ```bash
