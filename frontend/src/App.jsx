@@ -64,10 +64,10 @@ const router = createBrowserRouter([
         element: <ProtectedRoute><CreateRecipe /></ProtectedRoute>,
         loader: categoriesLoader
       },
-      { 
-        path: "recipe/:id/edit", 
-        element: <ProtectedRoute><EditRecipe /></ProtectedRoute>, 
-        loader: editRecipeLoader 
+      {
+        path: "recipe/:id/edit",
+        element: <ProtectedRoute><EditRecipe /></ProtectedRoute>,
+        loader: editRecipeLoader
       },
       {
         path: "profile/:id?",

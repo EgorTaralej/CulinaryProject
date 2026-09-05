@@ -19,7 +19,7 @@ export const searchLoader = async () => {
 
 const Search = () => {
     const { recipes, categories } = useLoaderData();
-    
+
     const [searchQuery, setSearchQuery] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [selectedCuisine, setSelectedCuisine] = useState('Всички');
@@ -38,18 +38,18 @@ const Search = () => {
     const filteredRecipes = useMemo(() => {
         return recipes.filter(recipe => {
             const matchesText = recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                              recipe.ingredients.some(ing => ing.toLowerCase().includes(searchQuery.toLowerCase()));
-            
+                recipe.ingredients.some(ing => ing.toLowerCase().includes(searchQuery.toLowerCase()));
+
             const matchesCuisine = selectedCuisine === 'Всички' || recipe.category?.cuisine === selectedCuisine;
-            const matchesDiet = selectedDiet === 'Всички' || 
-                               (selectedDiet === 'Без диета' ? !recipe.category?.diet : recipe.category?.diet === selectedDiet);
+            const matchesDiet = selectedDiet === 'Всички' ||
+                (selectedDiet === 'Без диета' ? !recipe.category?.diet : recipe.category?.diet === selectedDiet);
             const matchesDiff = selectedDiff === 'Всички' || recipe.category?.difficulty === selectedDiff;
             const matchesDishType = selectedDishType === 'Всички' || recipe.category?.dishType === selectedDishType;
 
             const recipeIngs = recipe.ingredients.map(i => i.toLowerCase());
-            const hasIncluded = includeTags.length === 0 || 
+            const hasIncluded = includeTags.length === 0 ||
                 includeTags.every(tag => recipeIngs.some(ing => ing.includes(tag.toLowerCase())));
-            const hasExcluded = excludeTags.some(tag => 
+            const hasExcluded = excludeTags.some(tag =>
                 recipeIngs.some(ing => ing.includes(tag.toLowerCase())));
 
             return matchesText && matchesCuisine && matchesDiet && matchesDiff && matchesDishType && hasIncluded && !hasExcluded;
@@ -84,18 +84,18 @@ const Search = () => {
                 <h1 className="text-5xl font-black text-slate-950 tracking-tighter italic">
                     Търсене на <span className="text-orange-500">рецепти</span>
                 </h1>
-                
+
                 <div className="max-w-3xl mx-auto flex gap-3">
                     <div className="relative flex-1 group">
                         <SearchIcon className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={20} />
-                        <Input 
+                        <Input
                             placeholder="Търси по име или съставка..."
                             className="w-full pl-14 pr-6 py-8 rounded-2xl border-none shadow-2xl text-lg focus-visible:ring-1 focus-visible:ring-orange-500 bg-white shadow-orange-100/50 font-medium"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <Button 
+                    <Button
                         onClick={() => setShowFilters(!showFilters)}
                         className={`h-16 px-6 rounded-2xl transition-all shadow-xl ${showFilters ? 'bg-slate-950 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 border-none'}`}
                     >
@@ -157,11 +157,11 @@ const Search = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-50">
                             <div className="space-y-3">
                                 <Label className="text-xs font-black uppercase text-emerald-600 ml-1">Имам в хладилника</Label>
-                                <Input 
-                                    placeholder="Добави и Enter..." 
+                                <Input
+                                    placeholder="Добави и Enter..."
                                     className="bg-slate-50 border-none rounded-xl"
                                     value={tagInput.include}
-                                    onChange={(e) => setTagInput({...tagInput, include: e.target.value})}
+                                    onChange={(e) => setTagInput({ ...tagInput, include: e.target.value })}
                                     onKeyDown={(e) => e.key === 'Enter' && handleAddTag('include')}
                                 />
                                 <div className="flex flex-wrap gap-2">
@@ -170,11 +170,11 @@ const Search = () => {
                             </div>
                             <div className="space-y-3">
                                 <Label className="text-xs font-black uppercase text-red-500 ml-1">БЕЗ съставка</Label>
-                                <Input 
-                                    placeholder="Добави и Enter..." 
+                                <Input
+                                    placeholder="Добави и Enter..."
                                     className="bg-slate-50 border-none rounded-xl"
                                     value={tagInput.exclude}
-                                    onChange={(e) => setTagInput({...tagInput, exclude: e.target.value})}
+                                    onChange={(e) => setTagInput({ ...tagInput, exclude: e.target.value })}
                                     onKeyDown={(e) => e.key === 'Enter' && handleAddTag('exclude')}
                                 />
                                 <div className="flex flex-wrap gap-2">
@@ -193,7 +193,7 @@ const Search = () => {
                         <button onClick={handleReset} className="text-sm font-black text-orange-600 hover:text-slate-950 uppercase tracking-widest transition-colors">Изчисти всичко</button>
                     )}
                 </div>
-                
+
                 {filteredRecipes.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                         {filteredRecipes.map(recipe => (

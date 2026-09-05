@@ -10,9 +10,9 @@ const RecipeCard = ({ recipe }) => {
         <Card className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300 rounded-3xl bg-white">
             <div className="relative h-52 overflow-hidden">
                 {recipe.mainImage ? (
-                    <img 
-                        src={recipe.mainImage} 
-                        alt={recipe.title} 
+                    <img
+                        src={recipe.mainImage}
+                        alt={recipe.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                 ) : (

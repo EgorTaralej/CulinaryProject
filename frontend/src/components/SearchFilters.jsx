@@ -8,7 +8,7 @@ import { Search as SearchIcon, SlidersHorizontal, X, RotateCcw, Loader2 } from '
 
 const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQuery, onReset }) => {
     const [showFilters, setShowFilters] = useState(false);
-    
+
     const initialFilters = {
         dishType: 'Всички',
         cuisine: 'Всички',
@@ -86,8 +86,8 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
     return (
         <div className="w-full space-y-6">
             <div className="max-w-3xl mx-auto flex gap-2 md:gap-3 items-center">
-                
-                <Button 
+
+                <Button
                     onClick={() => setShowFilters(!showFilters)}
                     className="h-14 md:h-16 px-4 md:px-6 rounded-2xl border-none bg-white text-slate-600 shadow-xl hover:bg-slate-50 flex-shrink-0"
                 >
@@ -104,8 +104,8 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
                         onKeyDown={(e) => e.key === 'Enter' && onSearch({ ...localFilters, query: searchQuery })}
                     />
                 </div>
-                
-                <Button 
+
+                <Button
                     onClick={() => onSearch({ ...localFilters, query: searchQuery })}
                     disabled={loading}
                     className="h-14 md:h-16 px-5 md:px-8 rounded-2xl bg-orange-500 hover:bg-slate-950 text-white font-black text-sm md:text-lg shadow-lg border-none flex-shrink-0"
@@ -116,7 +116,7 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
 
             {showFilters && (
                 <Card className="max-w-3xl mx-auto p-8 border-none shadow-2xl rounded-[2.5rem] bg-white animate-in fade-in slide-in-from-top-4 duration-300 relative">
-                    <button 
+                    <button
                         onClick={handleInternalReset}
                         className="absolute top-6 right-8 text-sm font-bold text-orange-600 hover:text-slate-950 transition-colors flex items-center gap-1"
                     >
@@ -145,17 +145,17 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-50">
                         <div className="space-y-3 text-left">
                             <Label className="text-xs font-black uppercase text-emerald-600 ml-1">Имам в хладилника</Label>
-                            <Input 
-                                placeholder="Добави съставка и Enter..." 
+                            <Input
+                                placeholder="Добави съставка и Enter..."
                                 className="bg-slate-50 border-none rounded-xl h-12 focus-visible:ring-0 shadow-none"
                                 value={tagInput.include}
-                                onChange={(e) => setTagInput({...tagInput, include: e.target.value})}
+                                onChange={(e) => setTagInput({ ...tagInput, include: e.target.value })}
                                 onKeyDown={(e) => e.key === 'Enter' && handleAddTag('include')}
                             />
                             <div className="flex flex-wrap gap-2 mt-3">
                                 {localFilters.includeTags.map(t => (
                                     <Badge key={t} className="bg-emerald-50 text-emerald-700 border-none py-2 px-4 rounded-xl text-sm font-bold flex items-center gap-2">
-                                        {t} 
+                                        {t}
                                         <button type="button" onClick={() => removeTag('include', t)} className="hover:bg-emerald-200 rounded-full p-0.5 transition-colors"><X size={14} /></button>
                                     </Badge>
                                 ))}
@@ -163,17 +163,17 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
                         </div>
                         <div className="space-y-3 text-left">
                             <Label className="text-xs font-black uppercase text-red-500 ml-1">БЕЗ съставка</Label>
-                            <Input 
-                                placeholder="Добави съставка и Enter..." 
+                            <Input
+                                placeholder="Добави съставка и Enter..."
                                 className="bg-slate-50 border-none rounded-xl h-12 focus-visible:ring-0 shadow-none"
                                 value={tagInput.exclude}
-                                onChange={(e) => setTagInput({...tagInput, exclude: e.target.value})}
+                                onChange={(e) => setTagInput({ ...tagInput, exclude: e.target.value })}
                                 onKeyDown={(e) => e.key === 'Enter' && handleAddTag('exclude')}
                             />
                             <div className="flex flex-wrap gap-2 mt-3">
                                 {localFilters.excludeTags.map(t => (
                                     <Badge key={t} className="bg-red-50 text-red-600 border-none py-2 px-4 rounded-xl text-sm font-bold flex items-center gap-2">
-                                        {t} 
+                                        {t}
                                         <button type="button" onClick={() => removeTag('exclude', t)} className="hover:bg-red-200 rounded-full p-0.5 transition-colors"><X size={14} /></button>
                                     </Badge>
                                 ))}

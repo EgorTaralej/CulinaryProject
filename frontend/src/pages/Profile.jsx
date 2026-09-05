@@ -52,7 +52,7 @@ const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
                         </span>
                     )}
                 </div>
-                
+
                 <p className="text-slate-500 text-xs md:text-base line-clamp-2 leading-relaxed mb-3 md:mb-4 font-medium italic">
                     {recipe.ingredients?.join(' • ')}
                 </p>
@@ -89,17 +89,17 @@ const Profile = () => {
     const data = useLoaderData();
     const profileData = data.user;
     const allUserRecipes = data.recipes || data.myRecipes || [];
-    
+
     const { id } = useParams();
     const { user: loggedInUser, refreshUser } = useContext(AuthContext);
     const { toast } = useToast();
     const revalidator = useRevalidator();
-    
+
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [userListModal, setUserListModal] = useState({ isOpen: false, title: '', list: [] });
-    
+
     const [bio, setBio] = useState(profileData?.bio || '');
     const [tempImg, setTempImg] = useState(profileData?.profileImage || '');
 
@@ -123,7 +123,7 @@ const Profile = () => {
             await api.put(`/users/follow/${profileData._id}`);
             await refreshUser();
             revalidator.revalidate();
-            toast({ 
+            toast({
                 title: isFollowing ? "Вече не следвате този потребител." : "Започнахте да следвате потребителя!",
                 duration: 2000
             });
@@ -194,7 +194,7 @@ const Profile = () => {
                             <h1 className="text-4xl font-black text-slate-950 tracking-tight">{profileData?.username}</h1>
                             <p className="text-slate-400 font-bold">@{profileData?.username?.toLowerCase()}</p>
                         </div>
-                        
+
                         {isMyProfile ? (
                             !isEditing ? (
                                 <Button onClick={() => setIsEditing(true)} variant="outline" className="rounded-xl border-slate-200 font-bold px-6 shadow-none transition-all hover:bg-slate-50">Редактирай</Button>
@@ -207,13 +207,12 @@ const Profile = () => {
                                 </div>
                             )
                         ) : (
-                            <Button 
+                            <Button
                                 onClick={handleFollow}
-                                className={`px-10 py-6 rounded-xl font-black text-lg shadow-lg transition-all border-none ${
-                                    isFollowing 
-                                    ? "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-500 shadow-none" 
-                                    : "bg-slate-950 text-white hover:bg-orange-500"
-                                }`}
+                                className={`px-10 py-6 rounded-xl font-black text-lg shadow-lg transition-all border-none ${isFollowing
+                                        ? "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-500 shadow-none"
+                                        : "bg-slate-950 text-white hover:bg-orange-500"
+                                    }`}
                             >
                                 {isFollowing ? <><UserCheck className="mr-2" /> Отпоследвай</> : <><UserPlus className="mr-2" /> Последвай</>}
                             </Button>
@@ -221,10 +220,10 @@ const Profile = () => {
                     </div>
 
                     {isEditing ? (
-                        <Textarea 
-                            value={bio} 
-                            onChange={(e) => setBio(e.target.value)} 
-                            className="mt-4 w-full rounded-2xl bg-slate-50 border-none resize-none p-6 text-lg focus-visible:ring-orange-500 shadow-inner" 
+                        <Textarea
+                            value={bio}
+                            onChange={(e) => setBio(e.target.value)}
+                            className="mt-4 w-full rounded-2xl bg-slate-50 border-none resize-none p-6 text-lg focus-visible:ring-orange-500 shadow-inner"
                             placeholder="Споделете нещо за себе си..."
                         />
                     ) : (
@@ -247,14 +246,14 @@ const Profile = () => {
             <Tabs defaultValue="recipes" className="w-full block">
                 <div className="w-full flex flex-col md:flex-row md:items-end justify-between border-b border-slate-100 mb-8 gap-4">
                     <TabsList className="flex bg-transparent h-auto p-0 gap-8 justify-start border-none shadow-none outline-none ring-0">
-                        <TabsTrigger 
-                            value="recipes" 
+                        <TabsTrigger
+                            value="recipes"
                             className="rounded-none bg-transparent px-0 pb-2 font-black text-lg text-slate-400 data-[state=active]:text-slate-950 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 outline-none border-none"
                         >
                             Рецепти ({allUserRecipes.length})
                         </TabsTrigger>
-                        <TabsTrigger 
-                            value="favorites" 
+                        <TabsTrigger
+                            value="favorites"
                             className="rounded-none bg-transparent px-0 pb-2 font-black text-lg text-slate-400 data-[state=active]:text-slate-950 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 outline-none border-none"
                         >
                             Любими ({profileData?.favorites?.length || 0})
@@ -263,15 +262,15 @@ const Profile = () => {
 
                     <div className="relative w-full md:w-72 pb-2">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                        <Input 
-                            placeholder="Търси в профила..." 
+                        <Input
+                            placeholder="Търси в профила..."
                             className="w-full pl-10 h-10 bg-slate-50 border-none rounded-xl focus-visible:ring-1 focus-visible:ring-orange-500 shadow-none text-sm font-bold"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
                 </div>
-                
+
                 <TabsContent value="recipes" className="w-full mt-0 outline-none block">
                     <div className="flex flex-col w-full">
                         {filteredRecipes.length > 0 ? (
@@ -294,23 +293,23 @@ const Profile = () => {
             </Tabs>
 
             {userListModal.isOpen && (
-                <div 
+                <div
                     className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm"
                     style={{ margin: 0 }}
                     onClick={() => setUserListModal({ ...userListModal, isOpen: false })}
                 >
-                    <div 
+                    <div
                         className="bg-white w-[90%] max-w-[360px] rounded-[2.5rem] shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col"
                         onClick={e => e.stopPropagation()}
                     >
 
                         <div className="px-6 pt-6 pb-2 flex justify-between items-center">
                             <h3 className="font-black text-lg text-slate-950">{userListModal.title}</h3>
-                            <button 
-                                onClick={() => setUserListModal({ ...userListModal, isOpen: false })} 
+                            <button
+                                onClick={() => setUserListModal({ ...userListModal, isOpen: false })}
                                 className="text-slate-400 hover:text-slate-950 transition-colors p-1"
                             >
-                                <X size={20}/>
+                                <X size={20} />
                             </button>
                         </div>
 
@@ -319,10 +318,10 @@ const Profile = () => {
                                 {userListModal.list.length > 0 ? userListModal.list.map(u => {
                                     if (!u || !u.username) return null;
                                     return (
-                                        <Link 
-                                            key={u._id} 
-                                            to={`/profile/${u._id}`} 
-                                            onClick={() => setUserListModal({ ...userListModal, isOpen: false })} 
+                                        <Link
+                                            key={u._id}
+                                            to={`/profile/${u._id}`}
+                                            onClick={() => setUserListModal({ ...userListModal, isOpen: false })}
                                             className="flex items-center gap-3 p-3 hover:bg-slate-50 rounded-2xl transition-all group"
                                         >
                                             <Avatar className="w-10 h-10 border border-slate-100 group-hover:scale-105 transition-transform">

@@ -7,9 +7,9 @@ export const editRecipeLoader = async ({ params }) => {
         api.get(`/recipes/${params.id}`),
         api.get('/categories')
     ]);
-    return { 
-        recipe: recipeRes.data.recipe, 
-        categories: categoriesRes.data 
+    return {
+        recipe: recipeRes.data.recipe,
+        categories: categoriesRes.data
     };
 };
 

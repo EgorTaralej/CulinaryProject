@@ -220,7 +220,7 @@ router.put('/:id', auth, async (req, res) => {
     try {
         let recipe = await Recipe.findById(req.params.id);
         if (!recipe) return res.status(404).json({ message: "Не е намерена" });
-        
+
         if (recipe.author.toString() !== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({ message: "Нямате права за редакцията" });
         }
@@ -228,13 +228,13 @@ router.put('/:id', auth, async (req, res) => {
         const newStatus = req.user.role === 'admin' ? 'approved' : 'pending';
 
         recipe = await Recipe.findByIdAndUpdate(
-            req.params.id, 
+            req.params.id,
             { $set: { ...req.body, status: newStatus } },
             { new: true }
         );
         res.json(recipe);
-    } catch (err) { 
-        res.status(500).send('Server Error'); 
+    } catch (err) {
+        res.status(500).send('Server Error');
     }
 });
 

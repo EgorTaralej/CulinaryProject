@@ -81,14 +81,14 @@ const AdminDashboard = () => {
             <Tabs defaultValue="reports" className="flex flex-col w-full space-y-10">
                 <div className="w-full border-b border-slate-100 pb-4">
                     <TabsList className="w-full max-w-2xl md:mx-auto grid grid-cols-2 bg-slate-100/50 p-1.5 rounded-[1.5rem] h-auto border-none">
-                        <TabsTrigger 
-                            value="reports" 
+                        <TabsTrigger
+                            value="reports"
                             className="rounded-[1.2rem] py-3 px-8 font-black text-base data-[state=active]:bg-white data-[state=active]:text-orange-500 data-[state=active]:shadow-lg transition-all outline-none ring-0 focus-visible:ring-0"
                         >
                             Сигнали ({data.reports.length})
                         </TabsTrigger>
-                        <TabsTrigger 
-                            value="pending" 
+                        <TabsTrigger
+                            value="pending"
                             className="rounded-[1.2rem] py-3 px-8 font-black text-base data-[state=active]:bg-white data-[state=active]:text-orange-500 data-[state=active]:shadow-lg transition-all outline-none ring-0 focus-visible:ring-0"
                         >
                             Нови рецепти ({data.pendingRecipes.length})
@@ -105,7 +105,7 @@ const AdminDashboard = () => {
                         return (
                             <Card key={report._id} className={`p-8 md:p-10 border-none shadow-2xl rounded-[3rem] bg-white relative overflow-hidden group w-full ${hasActionBeenTaken ? 'opacity-90' : ''}`}>
                                 <div className={`absolute top-0 left-0 w-full h-2 ${hasActionBeenTaken ? 'bg-emerald-500' : 'bg-red-500/10 group-hover:bg-red-500'} transition-colors`} />
-                                
+
                                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
                                     <div className="flex flex-col">
                                         <h4 className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-4 flex items-center gap-2">
@@ -124,7 +124,7 @@ const AdminDashboard = () => {
                                         <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 mt-auto font-bold">
                                             <p className="text-[10px] text-slate-400 uppercase font-black mb-1 tracking-widest">Рецепта:</p>
                                             <p className={`line-clamp-1 ${isRecipeDeleted ? 'text-slate-400 italic' : 'text-slate-900 font-black'}`}>{isRecipeDeleted ? "Рецептата е изтрита" : report.recipe?.title}</p>
-                                            {!isRecipeDeleted && <Link to={`/recipe/${report.recipe?._id}`} className="text-orange-500 text-[10px] font-black uppercase hover:underline mt-2 flex items-center gap-1"><Eye size={12}/> Преглед</Link>}
+                                            {!isRecipeDeleted && <Link to={`/recipe/${report.recipe?._id}`} className="text-orange-500 text-[10px] font-black uppercase hover:underline mt-2 flex items-center gap-1"><Eye size={12} /> Преглед</Link>}
                                         </div>
                                     </div>
 
@@ -145,37 +145,37 @@ const AdminDashboard = () => {
                                     </div>
 
                                     <div className="flex flex-col justify-center gap-4">
-                                        <Button 
+                                        <Button
                                             disabled={isRecipeDeleted}
                                             onClick={() => triggerConfirm('delete', `/admin/recipe/${report.recipe?._id}`, 'delete', 'Рецептата е изтрита', {}, 'Изтриване на рецепта', 'Наистина ли искате да премахнете тази рецепта?')}
                                             className="w-full bg-red-500 hover:bg-slate-950 text-white font-black rounded-xl py-7 shadow-xl shadow-red-100 border-none transition-all disabled:bg-slate-400 disabled:text-slate-100 disabled:opacity-100 disabled:cursor-not-allowed disabled:shadow-none"
                                         >
-                                            <Trash2 className="mr-2" size={18}/>
+                                            <Trash2 className="mr-2" size={18} />
                                             {isRecipeDeleted ? "РЕЦЕПТАТА Е ИЗТРИТА" : "ИЗТРИЙ РЕЦЕПТАТА"}
                                         </Button>
-                                        
+
                                         <div className="grid grid-cols-2 gap-2 md:gap-3">
-                                            <Button 
+                                            <Button
                                                 disabled={isAuthorDeleted}
                                                 onClick={() => triggerConfirm('block', `/admin/user/${report.recipe?.author?._id}/block`, 'put', 'Авторът е блокиран', { reportId: report._id }, 'Блокиране на автор', 'Това ще изтрие всички негови рецепти и коментари!', 'Блокирай')}
-                                                variant="outline" 
+                                                variant="outline"
                                                 className="flex-1 flex items-center justify-center gap-1 md:gap-2 border-slate-200 font-black text-[8px] md:text-[10px] uppercase text-slate-600 py-5 rounded-xl hover:bg-slate-950 hover:text-white transition-all shadow-none transition-all shadow-none disabled:bg-slate-300 disabled:text-slate-600 disabled:opacity-100 disabled:cursor-not-allowed"
                                             >
-                                                <Ban size={12} className="shrink-0" /> 
+                                                <Ban size={12} className="shrink-0" />
                                                 <span className="whitespace-nowrap">Блок Автор</span>
                                             </Button>
 
-                                            <Button 
+                                            <Button
                                                 onClick={() => triggerConfirm('block', `/admin/user/${report.reporter?._id}/block`, 'put', 'Репортерът е блокиран', {}, 'Блокиране на репортер', 'Сигурни ли сте, че искате да блокирате този потребител?', 'Блокирай')}
                                                 variant="outline"
                                                 className="flex-1 flex items-center justify-center gap-1 md:gap-2 border-slate-200 font-black text-[8px] md:text-[10px] uppercase text-slate-600 py-5 rounded-xl hover:bg-slate-950 hover:text-white transition-all shadow-none"
                                             >
-                                                <Ban size={12} className="shrink-0" /> 
+                                                <Ban size={12} className="shrink-0" />
                                                 <span className="whitespace-nowrap">Блок Репортер</span>
                                             </Button>
                                         </div>
-                                        
-                                        <Button 
+
+                                        <Button
                                             onClick={() => triggerConfirm(
                                                 'resolve',
                                                 `/admin/report/${report._id}/resolve`,
@@ -189,8 +189,8 @@ const AdminDashboard = () => {
                                                 hasActionBeenTaken ? "Отказ" : "Игнорирай"
                                             )}
                                             className={`w-full font-black text-[11px] uppercase py-7 rounded-xl transition-all border-none shadow-none ${hasActionBeenTaken
-                                                    ? "bg-emerald-500 text-white hover:bg-slate-950 shadow-lg shadow-emerald-100"
-                                                    : "bg-slate-50 text-slate-400 hover:bg-slate-100"
+                                                ? "bg-emerald-500 text-white hover:bg-slate-950 shadow-lg shadow-emerald-100"
+                                                : "bg-slate-50 text-slate-400 hover:bg-slate-100"
                                                 }`}
                                         >
                                             {hasActionBeenTaken ? (
@@ -231,9 +231,9 @@ const AdminDashboard = () => {
                             </div>
                             <h3 className="text-[17px] font-bold text-slate-800 leading-tight line-clamp-2 break-all overflow-wrap-anywhere">{recipe.title}</h3>
                             <p className="text-slate-500 text-sm line-clamp-2 mb-8 italic leading-relaxed">"{recipe.description}"</p>
-                            
+
                             <div className="flex gap-3 pt-6 border-t border-slate-50 mt-auto">
-                                <Button 
+                                <Button
                                     onClick={() => triggerConfirm(
                                         'approve',
                                         `/admin/recipe/${recipe._id}/approve`,
@@ -248,7 +248,7 @@ const AdminDashboard = () => {
                                 >
                                     <Check className="mr-2" size={18} /> ОДОБРИ
                                 </Button>
-                                <Button 
+                                <Button
                                     onClick={() => triggerConfirm('delete', `/admin/recipe/${recipe._id}`, 'delete', 'Рецептата е изтрита', {}, 'Отхвърляне', 'Сигурни ли сте, че искате да изтриете тази нова рецепта?')}
                                     className="bg-slate-100 hover:bg-red-500 hover:text-white text-slate-400 font-black rounded-xl py-6 px-6 transition-all border-none shadow-none"
                                 >

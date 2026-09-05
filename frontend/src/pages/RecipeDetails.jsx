@@ -168,7 +168,7 @@ const RecipeDetails = () => {
                 </div>
             )}
 
-            {user?.role === 'admin' && (
+            {user?.role === 'admin' && user?.id !== recipe.author._id && (
                 <div className="bg-red-50 border border-red-100 p-5 rounded-[2rem] mb-10 flex flex-wrap gap-4 items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
                     <div className="flex items-center gap-2 text-red-600 font-black uppercase text-xs tracking-widest italic">
                         <AlertCircle size={18} /> Админ Контрол
@@ -200,8 +200,8 @@ const RecipeDetails = () => {
                             onClick={handleToggleFavorite}
                             variant="ghost"
                             className={`rounded-full w-14 h-14 p-0 transition-all border-2 shrink-0 ${isFavorite
-                                    ? 'text-orange-500 border-orange-500 bg-orange-50'
-                                    : 'text-slate-950 border-slate-200 bg-white hover:border-orange-500'
+                                ? 'text-orange-500 border-orange-500 bg-orange-50'
+                                : 'text-slate-950 border-slate-200 bg-white hover:border-orange-500'
                                 }`}
                         >
                             <Heart fill={isFavorite ? "currentColor" : "none"} size={28} strokeWidth={2.5} />

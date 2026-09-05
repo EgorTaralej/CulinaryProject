@@ -40,19 +40,19 @@ const Home = () => {
     const { user } = useContext(AuthContext);
     const [displayRecipes, setDisplayRecipes] = useState(recipes);
     const [loading, setLoading] = useState(false);
-    
+
     const [searchQuery, setSearchQuery] = useState('');
     const [isFiltered, setIsFiltered] = useState(false);
     const [usedAdvanced, setUsedAdvanced] = useState(false);
     const [activeTab, setActiveTab] = useState('all');
 
     const handleSearch = async (filters) => {
-        const hasAdvanced = filters.includeTags.length > 0 || 
-                           filters.excludeTags.length > 0 || 
-                           filters.cuisine !== 'Всички' || 
-                           filters.diet !== 'Всички' || 
-                           filters.difficulty !== 'Всички' ||
-                           filters.dishType !== 'Всички';
+        const hasAdvanced = filters.includeTags.length > 0 ||
+            filters.excludeTags.length > 0 ||
+            filters.cuisine !== 'Всички' ||
+            filters.diet !== 'Всички' ||
+            filters.difficulty !== 'Всички' ||
+            filters.dishType !== 'Всички';
 
         if (!filters.query && !hasAdvanced) {
             handleClear();
@@ -95,10 +95,10 @@ const Home = () => {
                 <h1 className="text-5xl font-black text-slate-950 tracking-tight mb-10">
                     Открий нещо <span className="text-orange-500 italic">вкусно</span>
                 </h1>
-                
-                <SearchFilters 
-                    categories={categories} 
-                    onSearch={handleSearch} 
+
+                <SearchFilters
+                    categories={categories}
+                    onSearch={handleSearch}
                     loading={loading}
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
@@ -126,7 +126,7 @@ const Home = () => {
                                     ({activeTab === 'all' ? displayRecipes.length : feedRecipes.length})
                                 </span>
                             </h2>
-                        
+
                             {isFiltered && !usedAdvanced && activeTab === 'all' && (
                                 <button onClick={handleClear} className="text-sm font-bold text-orange-600 hover:text-slate-950 transition-colors">
                                     ✕ Изчисти търсенето

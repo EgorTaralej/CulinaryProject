@@ -6,6 +6,6 @@ describe('Recipe API', () => {
         const res = await request(app)
             .post('/api/recipes')
             .send({ title: 'Unauthorized Recipe' });
-        expect(res.statusCode).toEqual(401); // Трябва да е 401 без токен
+        expect(res.statusCode).toEqual(401);
     });
 });

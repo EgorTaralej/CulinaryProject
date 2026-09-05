@@ -19,10 +19,10 @@ export const categoriesLoader = async () => {
 const CreateRecipe = ({ initialData = null }) => {
     const navigate = useNavigate();
     const { toast } = useToast();
-    const { user } = useContext(AuthContext); 
+    const { user } = useContext(AuthContext);
     const loaderData = useLoaderData();
     const allCategories = Array.isArray(loaderData) ? loaderData : (loaderData?.categories || []);
-    
+
     const [loading, setLoading] = useState(false);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [stepToDelete, setStepToDelete] = useState(null);
@@ -33,7 +33,7 @@ const CreateRecipe = ({ initialData = null }) => {
     const [ingredients, setIngredients] = useState(initialData?.ingredients || ['']);
     const [steps, setSteps] = useState(initialData?.steps || [{ text: '', image: '' }]);
     const [videoUrl, setVideoUrl] = useState(initialData?.videoUrl || '');
-    
+
     const [prepTime, setPrepTime] = useState(initialData?.prepTime || '');
     const [cookTime, setCookTime] = useState(initialData?.cookTime || '');
     const [servings, setServings] = useState(initialData?.servings || '');
@@ -43,9 +43,9 @@ const CreateRecipe = ({ initialData = null }) => {
     const difficulties = allCategories.filter(c => c.type === 'difficulty');
     const dishTypes = allCategories.filter(c => c.type === 'dishType');
 
-    const [category, setCategory] = useState({ 
-        cuisine: initialData?.category?.cuisine || cuisines[0]?.name || '', 
-        diet: initialData?.category?.diet || '', 
+    const [category, setCategory] = useState({
+        cuisine: initialData?.category?.cuisine || cuisines[0]?.name || '',
+        diet: initialData?.category?.diet || '',
         difficulty: initialData?.category?.difficulty || difficulties[0]?.name || '',
         dishType: initialData?.category?.dishType || dishTypes[0]?.name || 'Друго'
     });
@@ -66,7 +66,7 @@ const CreateRecipe = ({ initialData = null }) => {
         setSteps(steps.filter((_, i) => i !== stepToDelete));
         setIsConfirmOpen(false);
         setStepToDelete(null);
-        toast({ 
+        toast({
             title: (
                 <div className="flex items-center gap-2">
                     <CheckCircle2 className="text-emerald-500" size={20} />
@@ -80,7 +80,7 @@ const CreateRecipe = ({ initialData = null }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         let missing = [];
         if (!mainImage) missing.push("основна снимка");
         if (!title.trim()) missing.push("заглавие");
@@ -101,7 +101,7 @@ const CreateRecipe = ({ initialData = null }) => {
 
         if (videoUrl.trim() !== "") {
             const youtubeRegex = /^(https?:\/\/)?(www\.|m\.)?(youtube\.com|youtu\.be)\/(watch\?v=|embed\/|v\/|shorts\/)?([a-zA-Z0-9_-]{11})(\S+)?$/;
-            
+
             if (!youtubeRegex.test(videoUrl.trim())) {
                 return toast({
                     variant: "destructive",
@@ -113,28 +113,28 @@ const CreateRecipe = ({ initialData = null }) => {
 
         setLoading(true);
         try {
-        const recipeData = { title, description, mainImage, ingredients, steps, category, videoUrl, prepTime, cookTime, servings };
-        const isAdmin = user?.role === 'admin';
+            const recipeData = { title, description, mainImage, ingredients, steps, category, videoUrl, prepTime, cookTime, servings };
+            const isAdmin = user?.role === 'admin';
 
-        if (initialData) {
-            await api.put(`/recipes/${initialData._id}`, recipeData);
-            toast({ 
-                title: isAdmin ? "Рецептата е обновена!" : "Промените са запазени!", 
-                description: isAdmin ? "Промените са видими веднага." : "Изчакайте одобрение от администратор." 
-            });
-        } else {
-            await api.post('/recipes', recipeData);
-            toast({ 
-                title: isAdmin ? "Рецептата е публикувана!" : "Рецептата е изпратена за одобрение!", 
-            });
+            if (initialData) {
+                await api.put(`/recipes/${initialData._id}`, recipeData);
+                toast({
+                    title: isAdmin ? "Рецептата е обновена!" : "Промените са запазени!",
+                    description: isAdmin ? "Промените са видими веднага." : "Изчакайте одобрение от администратор."
+                });
+            } else {
+                await api.post('/recipes', recipeData);
+                toast({
+                    title: isAdmin ? "Рецептата е публикувана!" : "Рецептата е изпратена за одобрение!",
+                });
+            }
+            navigate('/profile');
+        } catch (err) {
+            toast({ variant: "destructive", title: "Грешка при запис" });
+        } finally {
+            setLoading(false);
         }
-        navigate('/profile');
-    } catch (err) { 
-        toast({ variant: "destructive", title: "Грешка при запис" }); 
-    } finally { 
-        setLoading(false); 
-    }
-};
+    };
 
     const renderBadges = (items, currentField) => (
         <div className="flex flex-wrap gap-2">
@@ -142,11 +142,10 @@ const CreateRecipe = ({ initialData = null }) => {
                 <button
                     type="button"
                     onClick={() => setCategory({ ...category, diet: "" })}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                        !category.diet 
-                        ? "bg-slate-900 text-white shadow-md" 
-                        : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-                    }`}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${!category.diet
+                            ? "bg-slate-900 text-white shadow-md"
+                            : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                        }`}
                 >
                     Без диета
                 </button>
@@ -156,11 +155,10 @@ const CreateRecipe = ({ initialData = null }) => {
                     key={item._id}
                     type="button"
                     onClick={() => setCategory({ ...category, [currentField]: item.name })}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                        category[currentField] === item.name
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${category[currentField] === item.name
                             ? "bg-orange-500 text-white shadow-md shadow-orange-200"
                             : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-                    }`}
+                        }`}
                 >
                     {item.name}
                 </button>
@@ -176,8 +174,8 @@ const CreateRecipe = ({ initialData = null }) => {
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 <div className="lg:col-span-2 space-y-8">
-                    <div 
-                        onClick={() => document.getElementById('main-upload').click()} 
+                    <div
+                        onClick={() => document.getElementById('main-upload').click()}
                         className="relative h-96 bg-slate-50 rounded-[2.5rem] border-4 border-dashed border-slate-200 overflow-hidden cursor-pointer hover:border-orange-500 transition-all flex items-center justify-center shadow-inner"
                     >
                         {mainImage ? (
@@ -188,22 +186,22 @@ const CreateRecipe = ({ initialData = null }) => {
                                 <p className="font-bold text-lg">Кликнете за основна снимка</p>
                             </div>
                         )}
-                        <input 
-                            id="main-upload" 
-                            type="file" 
-                            className="hidden" 
-                            onChange={(e) => handleImageUpload(e.target.files[0], setMainImage)} 
+                        <input
+                            id="main-upload"
+                            type="file"
+                            className="hidden"
+                            onChange={(e) => handleImageUpload(e.target.files[0], setMainImage)}
                         />
                     </div>
 
                     <Card className="p-10 space-y-8 border-none shadow-xl rounded-[2.5rem] bg-white">
                         <div className="space-y-3 max-w-md">
                             <Label className="text-lg font-bold ml-1 text-slate-800">Име на ястието</Label>
-                            <Input 
-                                className="rounded-xl bg-slate-50 border-none h-12 focus:ring-0" 
-                                placeholder="Как се казва ястието?" 
-                                value={title} 
-                                onChange={(e) => setTitle(e.target.value)} 
+                            <Input
+                                className="rounded-xl bg-slate-50 border-none h-12 focus:ring-0"
+                                placeholder="Как се казва ястието?"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
                             />
                         </div>
 
@@ -212,43 +210,43 @@ const CreateRecipe = ({ initialData = null }) => {
                                 <Label className="text-slate-400 font-black uppercase text-[10px] tracking-widest ml-1 flex items-center gap-1.5">
                                     <Clock size={12} /> Подготовка (мин.)
                                 </Label>
-                                <Input 
-                                    type="number" 
+                                <Input
+                                    type="number"
                                     min="0"
-                                    placeholder="напр. 20" 
+                                    placeholder="напр. 20"
                                     className="rounded-xl bg-slate-50 border-none h-12"
-                                    value={prepTime} 
-                                    onChange={(e) => setPrepTime(e.target.value)} 
+                                    value={prepTime}
+                                    onChange={(e) => setPrepTime(e.target.value)}
                                 />
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-slate-400 font-black uppercase text-[10px] tracking-widest ml-1 flex items-center gap-1.5">
                                     <Clock size={12} /> Готвене (мин.)
                                 </Label>
-                                <Input 
+                                <Input
                                     type="number"
                                     min="0"
-                                    placeholder="напр. 45" 
+                                    placeholder="напр. 45"
                                     className="rounded-xl bg-slate-50 border-none h-12"
-                                    value={cookTime} 
-                                    onChange={(e) => setCookTime(e.target.value)} 
+                                    value={cookTime}
+                                    onChange={(e) => setCookTime(e.target.value)}
                                 />
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-slate-400 font-black uppercase text-[10px] tracking-widest ml-1 flex items-center gap-1.5">
                                     <Users size={12} /> Порции
                                 </Label>
-                                <Input 
+                                <Input
                                     type="number"
                                     min="0"
-                                    placeholder="напр. 4" 
+                                    placeholder="напр. 4"
                                     className="rounded-xl bg-slate-50 border-none h-12"
-                                    value={servings} 
-                                    onChange={(e) => setServings(e.target.value)} 
+                                    value={servings}
+                                    onChange={(e) => setServings(e.target.value)}
                                 />
                             </div>
                         </div>
-                        
+
                         <div className="space-y-6">
                             <div className="space-y-3">
                                 <Label className="text-xs font-black uppercase ml-1 text-slate-400">Кухня</Label>
@@ -270,21 +268,21 @@ const CreateRecipe = ({ initialData = null }) => {
 
                         <div className="space-y-3">
                             <Label className="text-lg font-bold ml-1 text-slate-800">Описание</Label>
-                            <Textarea 
-                                className="rounded-2xl min-h-[120px] bg-slate-50 border-none focus:ring-0 p-6 text-lg placeholder:text-muted-foreground resize-none" 
-                                placeholder="Разкажете нещо интересно за тази рецепта..." 
-                                value={description} 
-                                onChange={(e) => setDescription(e.target.value)} 
+                            <Textarea
+                                className="rounded-2xl min-h-[120px] bg-slate-50 border-none focus:ring-0 p-6 text-lg placeholder:text-muted-foreground resize-none"
+                                placeholder="Разкажете нещо интересно за тази рецепта..."
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
                             />
                         </div>
 
                         <div className="space-y-3 w-full">
                             <Label className="text-lg font-bold ml-1 flex items-center gap-2 text-slate-800"><Video className="text-orange-500" size={20} /> Видео линк (YouTube)</Label>
-                            <Input 
-                                className="rounded-xl bg-slate-50 border-none h-14 text-lg focus:ring-0" 
-                                placeholder="Линк към видео" 
-                                value={videoUrl} 
-                                onChange={(e) => setVideoUrl(e.target.value)} 
+                            <Input
+                                className="rounded-xl bg-slate-50 border-none h-14 text-lg focus:ring-0"
+                                placeholder="Линк към видео"
+                                value={videoUrl}
+                                onChange={(e) => setVideoUrl(e.target.value)}
                             />
                         </div>
                     </Card>
@@ -296,33 +294,33 @@ const CreateRecipe = ({ initialData = null }) => {
                                 <div className="flex justify-between items-center">
                                     <span className="bg-orange-500 text-white px-5 py-1.5 rounded-full text-xs font-bold uppercase">Стъпка {index + 1}</span>
                                     {index !== 0 && (
-                                        <Button 
-                                            type="button" 
-                                            variant="ghost" 
-                                            size="sm" 
-                                            onClick={() => { setStepToDelete(index); setIsConfirmOpen(true); }} 
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => { setStepToDelete(index); setIsConfirmOpen(true); }}
                                             className="text-slate-300 hover:text-red-500 flex-shrink-0"
                                         >
                                             <Trash2 size={24} />
                                         </Button>
                                     )}
                                 </div>
-                                <Textarea 
-                                    className="rounded-2xl bg-slate-50 border-none focus-visible:ring-orange-500 text-lg p-6 placeholder:text-muted-foreground" 
-                                    placeholder="Опишете какво се прави..." 
-                                    value={step.text} 
+                                <Textarea
+                                    className="rounded-2xl bg-slate-50 border-none focus-visible:ring-orange-500 text-lg p-6 placeholder:text-muted-foreground"
+                                    placeholder="Опишете какво се прави..."
+                                    value={step.text}
                                     onChange={(e) => {
                                         const newSteps = [...steps];
                                         newSteps[index].text = e.target.value;
                                         setSteps(newSteps);
-                                    }} 
+                                    }}
                                 />
                             </Card>
                         ))}
-                        <Button 
-                            type="button" 
-                            variant="outline" 
-                            className="w-full py-14 border-4 border-dashed rounded-[2.5rem] text-slate-400 hover:text-orange-500 transition-all font-bold text-xl" 
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full py-14 border-4 border-dashed rounded-[2.5rem] text-slate-400 hover:text-orange-500 transition-all font-bold text-xl"
                             onClick={() => setSteps([...steps, { text: '', image: '' }])}
                         >
                             + Добави следваща стъпка
@@ -336,22 +334,22 @@ const CreateRecipe = ({ initialData = null }) => {
                         <div className="space-y-3">
                             {ingredients.map((ing, index) => (
                                 <div key={index} className="flex items-center gap-2 mb-3 group">
-                                    <Input 
-                                        className="rounded-xl bg-slate-50 border-none h-14 placeholder:text-muted-foreground" 
-                                        placeholder="Напр. 500г брашно" 
-                                        value={ing} 
+                                    <Input
+                                        className="rounded-xl bg-slate-50 border-none h-14 placeholder:text-muted-foreground"
+                                        placeholder="Напр. 500г брашно"
+                                        value={ing}
                                         onChange={(e) => {
                                             const newIngs = [...ingredients];
                                             newIngs[index] = e.target.value;
                                             setIngredients(newIngs);
-                                        }} 
+                                        }}
                                     />
                                     {index !== 0 && (
-                                        <Button 
-                                            type="button" 
-                                            variant="ghost" 
-                                            size="icon" 
-                                            onClick={() => setIngredients(ingredients.filter((_, i) => i !== index))} 
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => setIngredients(ingredients.filter((_, i) => i !== index))}
                                             className="text-slate-300 hover:text-red-500 flex-shrink-0"
                                         >
                                             <Trash2 size={20} />
@@ -360,19 +358,19 @@ const CreateRecipe = ({ initialData = null }) => {
                                 </div>
                             ))}
                         </div>
-                        <Button 
-                            type="button" 
-                            variant="link" 
-                            onClick={() => setIngredients([...ingredients, ''])} 
+                        <Button
+                            type="button"
+                            variant="link"
+                            onClick={() => setIngredients([...ingredients, ''])}
                             className="text-orange-600 font-bold p-0 mt-4 hover:no-underline underline-none"
                         >
                             + Добави съставка
                         </Button>
                     </Card>
 
-                    <Button 
-                        type="submit" 
-                        disabled={loading} 
+                    <Button
+                        type="submit"
+                        disabled={loading}
                         className="w-full bg-orange-500 hover:bg-slate-950 text-white py-8 rounded-2xl font-bold text-xl shadow-lg transition-all flex items-center justify-center border-none"
                     >
                         {loading ? <Loader2 className="animate-spin" /> : (initialData ? 'Запази промените' : 'Публикувай рецептата')}
@@ -380,12 +378,12 @@ const CreateRecipe = ({ initialData = null }) => {
                 </div>
             </form>
 
-            <ConfirmationDialog 
-                isOpen={isConfirmOpen} 
-                onOpenChange={setIsConfirmOpen} 
-                onConfirm={confirmDelete} 
-                title="Премахни" 
-                description="Сигурни ли сте, че искате да изтриете тази стъпка?" 
+            <ConfirmationDialog
+                isOpen={isConfirmOpen}
+                onOpenChange={setIsConfirmOpen}
+                onConfirm={confirmDelete}
+                title="Премахни"
+                description="Сигурни ли сте, че искате да изтриете тази стъпка?"
             />
         </div>
     );

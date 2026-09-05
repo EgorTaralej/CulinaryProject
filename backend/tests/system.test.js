@@ -24,7 +24,7 @@ describe('Culinary App - Система за тестване (Acceptance Tests)
         const loginRes = await request(app)
             .post('/api/auth/login')
             .send({ email: 'ivan@test.com', password: 'password123' });
-        
+
         userToken = loginRes.body.token;
         expect(userToken).toBeDefined();
 
@@ -38,7 +38,7 @@ describe('Culinary App - Система за тестване (Acceptance Tests)
                 steps: [{ text: 'стъпка 1' }],
                 category: { cuisine: 'Българска', difficulty: 'Лесно', dishType: 'Друго' }
             });
-        
+
         expect(res.statusCode).toEqual(201);
         expect(res.body.status).toBe('pending');
         testRecipeId = res.body._id;
@@ -48,7 +48,7 @@ describe('Culinary App - Система за тестване (Acceptance Tests)
         const loginRes = await request(app)
             .post('/api/auth/login')
             .send({ email: 'egor@test.com', password: 'mypassword123' });
-        
+
         adminToken = loginRes.body.token;
 
         const res = await request(app)
@@ -61,7 +61,7 @@ describe('Culinary App - Система за тестване (Acceptance Tests)
                 steps: [{ text: 'стъпка 1' }],
                 category: { cuisine: 'Българска', difficulty: 'Лесно', dishType: 'Друго' }
             });
-        
+
         expect(res.body.status).toBe('approved');
     });
 
@@ -70,7 +70,7 @@ describe('Culinary App - Система за тестване (Acceptance Tests)
             .put(`/api/recipes/${testRecipeId}`)
             .set('x-auth-token', userToken)
             .send({ title: 'Променено заглавие' });
-        
+
         expect(res.body.status).toBe('pending');
     });
 
@@ -79,14 +79,14 @@ describe('Culinary App - Система за тестване (Acceptance Tests)
             .post(`/api/recipes/${testRecipeId}/report`)
             .set('x-auth-token', userToken)
             .send({ reason: 'Тестова жалба' });
-        
+
         expect(res.statusCode).toEqual(201);
     });
 
     it('Търсенето трябва да филтрира рецепти без диета', async () => {
         const res = await request(app)
             .get('/api/recipes/search/advanced?diet=Без диета');
-        
+
         expect(res.statusCode).toEqual(200);
         expect(Array.isArray(res.body)).toBe(true);
     });
