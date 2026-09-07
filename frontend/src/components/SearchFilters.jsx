@@ -21,7 +21,7 @@ const SearchFilters = ({ categories, onSearch, loading, searchQuery, setSearchQu
     const [localFilters, setLocalFilters] = useState(initialFilters);
     const [tagInput, setTagInput] = useState({ include: '', exclude: '' });
 
-    const dishTypes = categories.filter(c => c.type === 'dishType'); // НОВО
+    const dishTypes = categories.filter(c => c.type === 'dishType');
     const cuisines = categories.filter(c => c.type === 'cuisine');
     const diets = categories.filter(c => c.type === 'diet');
     const difficulties = categories.filter(c => c.type === 'difficulty');
