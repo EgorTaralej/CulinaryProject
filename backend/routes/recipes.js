@@ -8,7 +8,7 @@ const Report = require('../models/Report');
 
 router.get('/', async (req, res) => {
     try {
-        const blockedUsers = await User.find({ isBlocked: true }).select('_id');
+        const blockedUsers = await User.find({ isBlocked: true }).select('username email profileImage createdAt');
         const blockedIds = blockedUsers.map(u => u._id);
 
         const recipes = await Recipe.find({
@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
 
 router.get('/search/advanced', async (req, res) => {
     try {
-        const blockedUsers = await User.find({ isBlocked: true }).select('_id');
+        const blockedUsers = await User.find({ isBlocked: true }).select('username email profileImage createdAt');
         const blockedIds = blockedUsers.map(u => u._id);
 
         const { q, cuisine, diet, difficulty, dishType, include, exclude } = req.query;
@@ -116,17 +116,19 @@ router.post('/:id/report', auth, async (req, res) => {
 
 router.get('/:id', async (req, res) => {
     try {
-        const recipe = await Recipe.findById(req.params.id).populate('author', ['username', 'profileImage']);
+        let recipe = await Recipe.findById(req.params.id).populate('author', ['username', 'profileImage']);
         if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
         const token = req.header('x-auth-token');
         let isAuthorized = false;
+        let isAdmin = false;
 
         if (token) {
             try {
                 const jwt = require('jsonwebtoken');
                 const decoded = jwt.verify(token, process.env.JWT_SECRET);
-                if (decoded.id === recipe.author._id.toString() || decoded.role === 'admin') {
+                isAdmin = decoded.role === 'admin';
+                if (decoded.id === recipe.author._id.toString() || isAdmin) {
                     isAuthorized = true;
                 }
             } catch (err) { }
@@ -136,6 +138,16 @@ router.get('/:id', async (req, res) => {
             return res.status(403).json({ message: "Тази рецепта е в процес на модерация." });
         }
 
+        if (isAuthorized && recipe.hasPendingUpdates && recipe.pendingUpdates) {
+            const mergedData = {
+                ...recipe.toObject(),
+                ...recipe.pendingUpdates,
+                _id: recipe._id,
+                author: recipe.author
+            };
+            recipe = mergedData;
+        }
+
         const comments = await Comment.find({ recipe: req.params.id })
             .populate('author', ['username', 'profileImage'])
             .sort({ createdAt: -1 });
@@ -143,7 +155,6 @@ router.get('/:id', async (req, res) => {
         res.json({ recipe, comments });
     } catch (err) {
         console.error("Error in GET /:id:", err.message);
-        if (err.kind === 'ObjectId') return res.status(404).json({ message: "Invalid ID" });
         res.status(500).send('Server Error');
     }
 });
@@ -225,15 +236,21 @@ router.put('/:id', auth, async (req, res) => {
             return res.status(401).json({ message: "Нямате права за редакцията" });
         }
 
-        const newStatus = req.user.role === 'admin' ? 'approved' : 'pending';
-
-        recipe = await Recipe.findByIdAndUpdate(
-            req.params.id,
-            { $set: { ...req.body, status: newStatus } },
-            { new: true }
-        );
+        if (req.user.role === 'admin') {
+            recipe = await Recipe.findByIdAndUpdate(
+                req.params.id,
+                { $set: { ...req.body, status: 'approved', pendingUpdates: null, hasPendingUpdates: false } },
+                { returnDocument: 'after' } 
+            );
+        } else {
+            recipe.pendingUpdates = { ...req.body }; 
+            recipe.hasPendingUpdates = true;
+            recipe.markModified('pendingUpdates');
+            await recipe.save();
+        }
         res.json(recipe);
     } catch (err) {
+        console.error("Грешка:", err.message);
         res.status(500).send('Server Error');
     }
 });

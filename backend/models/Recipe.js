@@ -64,6 +64,14 @@ const recipeSchema = new mongoose.Schema({
     isReported: {
         type: Boolean,
         default: false
+    },
+    pendingUpdates: {
+        type: Object,
+        default: null
+    },
+    hasPendingUpdates: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 

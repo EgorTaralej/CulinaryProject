@@ -27,16 +27,17 @@ const CreateRecipe = ({ initialData = null }) => {
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [stepToDelete, setStepToDelete] = useState(null);
 
-    const [mainImage, setMainImage] = useState(initialData?.mainImage || '');
-    const [title, setTitle] = useState(initialData?.title || '');
-    const [description, setDescription] = useState(initialData?.description || '');
-    const [ingredients, setIngredients] = useState(initialData?.ingredients || ['']);
-    const [steps, setSteps] = useState(initialData?.steps || [{ text: '', image: '' }]);
-    const [videoUrl, setVideoUrl] = useState(initialData?.videoUrl || '');
+    const currentData = initialData?.hasPendingUpdates ? initialData.pendingUpdates : initialData;
 
-    const [prepTime, setPrepTime] = useState(initialData?.prepTime || '');
-    const [cookTime, setCookTime] = useState(initialData?.cookTime || '');
-    const [servings, setServings] = useState(initialData?.servings || '');
+    const [mainImage, setMainImage] = useState(currentData?.mainImage || '');
+    const [title, setTitle] = useState(currentData?.title || '');
+    const [description, setDescription] = useState(currentData?.description || '');
+    const [ingredients, setIngredients] = useState(currentData?.ingredients || ['']);
+    const [steps, setSteps] = useState(currentData?.steps || [{ text: '', image: '' }]);
+    const [videoUrl, setVideoUrl] = useState(currentData?.videoUrl || '');
+    const [prepTime, setPrepTime] = useState(currentData?.prepTime || '');
+    const [cookTime, setCookTime] = useState(currentData?.cookTime || '');
+    const [servings, setServings] = useState(currentData?.servings || '');
 
     const cuisines = allCategories.filter(c => c.type === 'cuisine');
     const diets = allCategories.filter(c => c.type === 'diet');
@@ -81,6 +82,8 @@ const CreateRecipe = ({ initialData = null }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const cleanSteps = steps.map(({ _id, ...rest }) => rest);
+
         let missing = [];
         if (!mainImage) missing.push("основна снимка");
         if (!title.trim()) missing.push("заглавие");
@@ -113,7 +116,7 @@ const CreateRecipe = ({ initialData = null }) => {
 
         setLoading(true);
         try {
-            const recipeData = { title, description, mainImage, ingredients, steps, category, videoUrl, prepTime, cookTime, servings };
+            const recipeData = { title, description, mainImage, ingredients, steps: cleanSteps, category, videoUrl, prepTime, cookTime, servings };
             const isAdmin = user?.role === 'admin';
 
             if (initialData) {
@@ -143,8 +146,8 @@ const CreateRecipe = ({ initialData = null }) => {
                     type="button"
                     onClick={() => setCategory({ ...category, diet: "" })}
                     className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${!category.diet
-                            ? "bg-slate-900 text-white shadow-md"
-                            : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                        ? "bg-slate-900 text-white shadow-md"
+                        : "bg-slate-50 text-slate-500 hover:bg-slate-100"
                         }`}
                 >
                     Без диета
@@ -156,8 +159,8 @@ const CreateRecipe = ({ initialData = null }) => {
                     type="button"
                     onClick={() => setCategory({ ...category, [currentField]: item.name })}
                     className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${category[currentField] === item.name
-                            ? "bg-orange-500 text-white shadow-md shadow-orange-200"
-                            : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                        ? "bg-orange-500 text-white shadow-md shadow-orange-200"
+                        : "bg-slate-50 text-slate-500 hover:bg-slate-100"
                         }`}
                 >
                     {item.name}
@@ -310,8 +313,9 @@ const CreateRecipe = ({ initialData = null }) => {
                                     placeholder="Опишете какво се прави..."
                                     value={step.text}
                                     onChange={(e) => {
-                                        const newSteps = [...steps];
-                                        newSteps[index].text = e.target.value;
+                                        const newSteps = steps.map((step, i) =>
+                                            i === index ? { ...step, text: e.target.value } : step
+                                        );
                                         setSteps(newSteps);
                                     }}
                                 />
@@ -339,8 +343,9 @@ const CreateRecipe = ({ initialData = null }) => {
                                         placeholder="Напр. 500г брашно"
                                         value={ing}
                                         onChange={(e) => {
-                                            const newIngs = [...ingredients];
-                                            newIngs[index] = e.target.value;
+                                            const newIngs = ingredients.map((ing, i) =>
+                                                i === index ? e.target.value : ing
+                                            );
                                             setIngredients(newIngs);
                                         }}
                                     />

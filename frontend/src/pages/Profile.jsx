@@ -17,6 +17,12 @@ export const profileLoader = async ({ params }) => {
 };
 
 const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
+    const { user: loggedInUser } = useContext(AuthContext);
+    const isPrivileged = isMyProfile || loggedInUser?.role === 'admin';
+    const displayData = (isPrivileged && recipe.hasPendingUpdates && recipe.pendingUpdates)
+        ? { ...recipe, ...recipe.pendingUpdates }
+        : recipe;
+
     const date = new Date(recipe.createdAt).toLocaleDateString('bg-BG', {
         day: '2-digit',
         month: '2-digit',
@@ -30,12 +36,17 @@ const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
     });
 
     const isUpdated = recipe.updatedAt && new Date(recipe.updatedAt).getTime() - new Date(recipe.createdAt).getTime() > 1000;
+    const showPendingLabel = isPrivileged && (recipe.status === 'pending' || recipe.hasPendingUpdates);
 
     return (
         <Link to={`/recipe/${recipe._id}`} className="flex w-full gap-4 md:gap-6 py-6 border-b border-slate-100 hover:bg-slate-50/50 transition-all group">
             <div className="w-28 h-28 md:w-40 md:h-40 flex-shrink-0 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-sm">
-                {recipe.mainImage ? (
-                    <img src={recipe.mainImage} alt={recipe.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                {displayData.mainImage ? (
+                    <img
+                        src={displayData.mainImage}
+                        alt={displayData.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs font-bold text-center p-2 uppercase">Няма снимка</div>
                 )}
@@ -44,9 +55,9 @@ const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
             <div className="flex flex-col justify-center flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 mb-1 md:mb-2">
                     <h3 className="text-[17px] font-bold text-slate-800 leading-tight line-clamp-2 break-all overflow-wrap-anywhere">
-                        {recipe.title}
+                        {displayData.title}
                     </h3>
-                    {isMyProfile && recipe.status === 'pending' && (
+                    {showPendingLabel && (
                         <span className="flex-shrink-0 bg-orange-50 text-orange-600 text-[10px] font-black uppercase px-2 py-1 rounded-lg border border-orange-100">
                             Чака одобрение
                         </span>
@@ -54,7 +65,7 @@ const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
                 </div>
 
                 <p className="text-slate-500 text-xs md:text-base line-clamp-2 leading-relaxed mb-3 md:mb-4 font-medium italic">
-                    {recipe.ingredients?.join(' • ')}
+                    {displayData.ingredients?.join(' • ')}
                 </p>
 
                 <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-slate-400 text-[10px] md:text-xs font-black uppercase tracking-widest">
@@ -69,7 +80,7 @@ const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
                     </div>
                     <div className="flex items-center gap-1.5 border-l border-slate-200 pl-4">
                         <Clock size={14} className="text-orange-500" />
-                        <span>{recipe.cookTime || '45'} МИН.</span>
+                        <span>{displayData.cookTime || '45'} МИН.</span>
                     </div>
                     <div className="flex flex-col md:flex-row md:items-center gap-x-4 border-l border-slate-200 pl-4">
                         <span title="Дата на създаване">{date}</span>
@@ -210,8 +221,8 @@ const Profile = () => {
                             <Button
                                 onClick={handleFollow}
                                 className={`px-10 py-6 rounded-xl font-black text-lg shadow-lg transition-all border-none ${isFollowing
-                                        ? "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-500 shadow-none"
-                                        : "bg-slate-950 text-white hover:bg-orange-500"
+                                    ? "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-500 shadow-none"
+                                    : "bg-slate-950 text-white hover:bg-orange-500"
                                     }`}
                             >
                                 {isFollowing ? <><UserCheck className="mr-2" /> Отпоследвай</> : <><UserPlus className="mr-2" /> Последвай</>}

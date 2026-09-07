@@ -83,6 +83,18 @@ const RecipeDetails = () => {
                 await api.delete(`/admin/comment/${data}`);
                 setComments(prev => prev.filter(c => c._id !== data));
                 toast({ title: "Коментарът е премахнат." });
+            } else if (type === 'rejectUpdate') {
+                await api.put(`/admin/recipe/${recipe._id}/reject-update`);
+                setRecipe({ ...recipe, hasPendingUpdates: false, pendingUpdates: null });
+                toast({ title: "Промените бяха отхвърлени." });
+            } else if (type === 'approveRecipe') {
+                await api.put(`/admin/recipe/${recipe._id}/approve`);
+                if (recipe.hasPendingUpdates) {
+                    window.location.reload();
+                } else {
+                    setRecipe({ ...recipe, status: 'approved' });
+                    toast({ title: "Рецептата е одобрена успешно!" });
+                }
             }
         } catch (err) {
             toast({ variant: "destructive", title: "Грешка при операцията" });
@@ -90,15 +102,12 @@ const RecipeDetails = () => {
         setConfirmState({ isOpen: false, type: '', data: null });
     };
 
-    const handleApprove = async () => {
-        try {
-            await api.put(`/admin/recipe/${recipe._id}/approve`);
-            const updatedRecipe = { ...recipe, status: 'approved' };
-            setRecipe(updatedRecipe);
-            toast({ title: "Рецептата е одобрена успешно!" });
-        } catch (err) {
-            toast({ variant: "destructive", title: "Грешка при одобрение" });
-        }
+    const handleApprove = () => {
+        setConfirmState({
+            isOpen: true,
+            type: 'approveRecipe',
+            data: null
+        });
     };
 
     const handleToggleFavorite = async () => {
@@ -155,28 +164,25 @@ const RecipeDetails = () => {
     return (
         <div className="max-w-5xl mx-auto py-10 px-4 font-sans">
 
-            {isAuthor && recipe.status === 'pending' && (
-                <div className="bg-orange-50 border-2 border-dashed border-orange-200 p-3 rounded-[2rem] mb-10 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-orange-500 p-2 rounded-full text-white">
-                            <Clock size={20} />
-                        </div>
-                        <div>
-                            <p className="font-black text-orange-700 uppercase text-xs tracking-widest">В процес на одобрение</p>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             {user?.role === 'admin' && user?.id !== recipe.author._id && (
                 <div className="bg-red-50 border border-red-100 p-5 rounded-[2rem] mb-10 flex flex-wrap gap-4 items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
                     <div className="flex items-center gap-2 text-red-600 font-black uppercase text-xs tracking-widest italic">
                         <AlertCircle size={18} /> Админ Контрол
                     </div>
                     <div className="flex gap-2">
-                        {recipe.status !== 'approved' && (
+                        {(recipe.status !== 'approved' || recipe.hasPendingUpdates) && (
                             <Button onClick={handleApprove} variant="outline" className="font-bold rounded-xl border-emerald-200 text-emerald-500 hover:bg-emerald-500 hover:text-white">
-                                {recipe.createdAt === recipe.updatedAt ? "Одобри рецептата" : "Одобри промените"}
+                                {recipe.hasPendingUpdates ? "Приложи промените" : "Одобри рецептата"}
+                            </Button>
+                        )}
+
+                        {recipe.hasPendingUpdates && (
+                            <Button
+                                onClick={() => setConfirmState({ isOpen: true, type: 'rejectUpdate' })}
+                                variant="outline"
+                                className="font-bold rounded-xl border-orange-200 text-orange-500 hover:bg-orange-500 hover:text-white"
+                            >
+                                Отклони промените
                             </Button>
                         )}
                         <Button onClick={() => setConfirmState({ isOpen: true, type: 'deleteRecipe' })} variant="outline" className="font-bold rounded-xl hover:bg-slate-900 hover:text-white">Изтрий рецептата</Button>
@@ -185,14 +191,32 @@ const RecipeDetails = () => {
                 </div>
             )}
 
+            {isAuthor && (recipe.status === 'pending' || recipe.hasPendingUpdates) && (
+                <div className="bg-orange-50 border-2 border-dashed border-orange-200 p-6 rounded-[2rem] mb-10 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-orange-500 p-2 rounded-full text-white"><Clock size={20} /></div>
+                        <div>
+                            <p className="font-black text-orange-700 uppercase text-xs tracking-widest">
+                                В процес на одобрение
+                            </p>
+                            <p className="text-orange-600 text-sm font-medium">
+                                {recipe.hasPendingUpdates
+                                    ? "Вашите нови промени се преглеждат от администратор."
+                                    : "Вашата рецепта се преглежда от администратор. Можете да я редактирате по всяко време."}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16 items-center">
                 <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-100">
-                    {recipe.mainImage ? <img src={recipe.mainImage} className="w-full h-full object-cover" alt={recipe.title} /> : <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold">Няма снимка</div>}
+                    {recipe.mainImage ? <img src={recipe.mainImage} className="w-full h-full object-cover" alt={recipe.title} /> : <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic">Няма снимка</div>}
                 </div>
 
                 <div className="flex flex-col space-y-6">
                     <div className="flex justify-between items-start">
-                        <h1 className="text-3xl md:text-5xl font-black text-slate-950 leading-[1.1] break-all whitespace-normal overflow-wrap-anywhere flex-1 mr-4">
+                        <h1 className="text-3xl md:text-5xl font-black text-slate-950 leading-[1.1] break-words whitespace-normal flex-1 mr-4">
                             {recipe.title}
                         </h1>
                         <Button
@@ -415,14 +439,24 @@ const RecipeDetails = () => {
                 onConfirm={executeAction}
                 title={
                     confirmData.type === 'deleteRecipe' ? "Изтриване на рецепта" :
-                        confirmData.type === 'blockUser' ? "Блокиране на потребител" : "Изтриване на коментар"
+                        confirmData.type === 'blockUser' ? "Блокиране на потребител" :
+                            confirmData.type === 'rejectUpdate' ? "Отхвърляне на промени" :
+                                confirmData.type === 'approveRecipe' ? (recipe.hasPendingUpdates ? "Прилагане на промени" : "Одобряване на рецепта") :
+                                    "Изтриване на коментар"
                 }
                 description={
                     confirmData.type === 'deleteRecipe' ? "Сигурни ли сте, че искате да изтриете тази рецепта? Това действие е необратимо." :
                         confirmData.type === 'blockUser' ? `Сигурни ли сте, че искате да блокирате ${confirmData.data?.username}? Всички негови данни ще бъдат премахнати.` :
-                            "Сигурни ли сте, че искате да премахнете този коментар?"
+                            confirmData.type === 'rejectUpdate' ? "Сигурни ли сте, че искате да отхвърлите предложените редакции?" :
+                                confirmData.type === 'approveRecipe' ? (recipe.hasPendingUpdates ? "Сигурни ли сте, че искате да приложите новите редакции към тази рецепта?" : "Сигурни ли сте, че искате да одобрите тази рецепта за публикуване?") :
+                                    "Сигурни ли сте, че искате да премахнете този коментар?"
                 }
-                confirmText={confirmData.type === 'blockUser' ? "Блокирай" : "Изтрий"}
+                confirmText={
+                    confirmData.type === 'blockUser' ? "Блокирай" :
+                        confirmData.type === 'rejectUpdate' ? "Отхвърли" :
+                            confirmData.type === 'approveRecipe' ? (recipe.hasPendingUpdates ? "Приложи" : "Одобри") :
+                                "Изтрий"
+                }
             />
 
             {
