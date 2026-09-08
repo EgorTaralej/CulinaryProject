@@ -8,14 +8,14 @@ const Report = require('../models/Report');
 
 router.get('/', async (req, res) => {
     try {
-        const blockedUsers = await User.find({ isBlocked: true }).select('username email profileImage createdAt');
+        const blockedUsers = await User.find({ isBlocked: true }).select('_id');
         const blockedIds = blockedUsers.map(u => u._id);
 
         const recipes = await Recipe.find({
             status: 'approved',
             author: { $nin: blockedIds }
         })
-            .populate('author', ['username', 'profileImage'])
+            .populate('author', ['username', 'profileImage', 'isBlocked'])
             .sort({ createdAt: -1 });
         res.json(recipes);
     } catch (err) {
@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
 
 router.get('/search/advanced', async (req, res) => {
     try {
-        const blockedUsers = await User.find({ isBlocked: true }).select('username email profileImage createdAt');
+        const blockedUsers = await User.find({ isBlocked: true }).select('_id');
         const blockedIds = blockedUsers.map(u => u._id);
 
         const { q, cuisine, diet, difficulty, dishType, include, exclude } = req.query;
@@ -67,7 +67,7 @@ router.get('/search/advanced', async (req, res) => {
         }
 
         const recipes = await Recipe.find(query)
-            .populate('author', ['username', 'profileImage'])
+            .populate('author', ['username', 'profileImage', 'isBlocked'])
             .sort({ createdAt: -1 });
         res.json(recipes);
     } catch (err) {
@@ -84,7 +84,7 @@ router.get('/feed', auth, async (req, res) => {
             author: { $in: following },
             status: 'approved'
         })
-            .populate('author', ['username', 'profileImage'])
+            .populate('author', ['username', 'profileImage', 'isBlocked'])
             .sort({ createdAt: -1 });
 
         res.json(recipes);
@@ -116,7 +116,7 @@ router.post('/:id/report', auth, async (req, res) => {
 
 router.get('/:id', async (req, res) => {
     try {
-        let recipe = await Recipe.findById(req.params.id).populate('author', ['username', 'profileImage']);
+        let recipe = await Recipe.findById(req.params.id).populate('author', ['username', 'profileImage', 'isBlocked']);
         if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
         const token = req.header('x-auth-token');
@@ -134,6 +134,10 @@ router.get('/:id', async (req, res) => {
             } catch (err) { }
         }
 
+        if (recipe.author.isBlocked && !isAdmin) {
+            return res.status(403).json({ message: "Тази рецепта е недостъпна." });
+        }
+
         if (recipe.status !== 'approved' && !isAuthorized) {
             return res.status(403).json({ message: "Тази рецепта е в процес на модерация." });
         }
@@ -148,8 +152,15 @@ router.get('/:id', async (req, res) => {
             recipe = mergedData;
         }
 
-        const comments = await Comment.find({ recipe: req.params.id })
-            .populate('author', ['username', 'profileImage'])
+        let commentQuery = { recipe: req.params.id };
+        if (!isAdmin) {
+            const blockedUsers = await User.find({ isBlocked: true }).select('_id');
+            const blockedIds = blockedUsers.map(u => u._id);
+            commentQuery.author = { $nin: blockedIds };
+        }
+
+        const comments = await Comment.find(commentQuery)
+            .populate('author', ['username', 'profileImage', 'isBlocked'])
             .sort({ createdAt: -1 });
 
         res.json({ recipe, comments });
@@ -192,10 +203,38 @@ router.post('/:id/comment', auth, async (req, res) => {
         });
 
         await newComment.save();
-        const populated = await Comment.findById(newComment._id).populate('author', ['username', 'profileImage']);
+        const populated = await Comment.findById(newComment._id).populate('author', ['username', 'profileImage', 'isBlocked']);
         res.status(201).json(populated);
     } catch (err) {
         console.error("Error in POST /comment:", err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.put('/comment/:id', auth, async (req, res) => {
+    try {
+        const comment = await Comment.findById(req.params.id);
+        if (!comment) return res.status(404).json({ message: "Не е намерен" });
+        if (comment.author.toString() !== req.user.id) return res.status(401).json({ message: "Нямате права" });
+        
+        comment.text = req.body.text;
+        await comment.save();
+        res.json(comment);
+    } catch (err) { res.status(500).send('Server Error'); }
+});
+
+router.delete('/comment/:id', auth, async (req, res) => {
+    try {
+        const comment = await Comment.findById(req.params.id);
+        if (!comment) return res.status(404).json({ message: "Не е намерен" });
+
+        if (comment.author.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(401).json({ message: "Нямате права" });
+        }
+
+        await Comment.findByIdAndDelete(req.params.id);
+        res.json({ message: "Коментарът е изтрит" });
+    } catch (err) {
         res.status(500).send('Server Error');
     }
 });
@@ -263,7 +302,7 @@ router.delete('/:id', auth, async (req, res) => {
             return res.status(404).json({ message: "Рецептата не е намерена." });
         }
 
-        if (recipe.author.toString() !== req.user.id) {
+        if (recipe.author.toString() !== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({ message: "Нямате права за това действие." });
         }
 

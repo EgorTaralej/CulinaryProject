@@ -126,14 +126,16 @@ const AdminDashboard = () => {
                                             <div className="w-1.5 h-1.5 rounded-full bg-red-500" /> Автор на рецептата
                                         </h4>
                                         <div className="flex items-center gap-4 mb-6">
-                                            <Avatar className="h-14 w-14 border-2 border-white shadow-md">
-                                                <AvatarImage src={report.recipe?.author?.profileImage} />
-                                                <AvatarFallback className="bg-slate-100 font-black">{isAuthorDeleted ? '?' : report.recipe?.author?.username?.[0]}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="min-w-0">
-                                                <p className={`font-black text-xl truncate ${isAuthorDeleted ? 'text-slate-400 italic' : 'text-slate-900'}`}>{isAuthorDeleted ? "Авторът е премахнат" : report.recipe?.author?.username}</p>
-                                                {!isAuthorDeleted && <p className="text-xs text-slate-400 font-bold flex items-center gap-1 truncate italic">{report.recipe?.author?.email}</p>}
-                                            </div>
+                                            <Link to={`/profile/${report.recipe?.author?._id}`} className="flex items-center gap-4 group/author">
+                                                <Avatar className="h-14 w-14 border-2 border-white shadow-md">
+                                                    <AvatarImage src={report.recipe?.author?.profileImage} />
+                                                    <AvatarFallback className="bg-slate-100 font-black">{isAuthorDeleted ? '?' : report.recipe?.author?.username?.[0]}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="min-w-0">
+                                                    <p className={`font-black text-xl truncate group-hover/author:text-orange-500 transition-colors ${isAuthorDeleted ? 'text-slate-400 italic' : (report.recipe?.author?.isBlocked ? 'text-red-500' : 'text-slate-900')}`}>{isAuthorDeleted ? "Авторът е премахнат" : report.recipe?.author?.username} {report.recipe?.author?.isBlocked && <span className="font-black">[БЛОКИРАН]</span>}</p>
+                                                    {!isAuthorDeleted && <p className="text-xs text-slate-400 font-bold flex items-center gap-1 truncate italic">{report.recipe?.author?.email}</p>}
+                                                </div>
+                                            </Link>
                                         </div>
                                         <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 mt-auto font-bold flex-1 flex flex-col justify-center">
                                             <p className="text-[10px] text-slate-400 uppercase font-black mb-2 tracking-widest italic">Рецепта:</p>
@@ -147,14 +149,16 @@ const AdminDashboard = () => {
                                             <div className="w-1.5 h-1.5 rounded-full bg-orange-500" /> Подаден сигнал от
                                         </h4>
                                         <div className="flex items-center gap-4">
-                                            <Avatar className="h-14 w-14 border-2 border-white shadow-md">
-                                                <AvatarImage src={report.reporter?.profileImage} />
-                                                <AvatarFallback className="bg-slate-100 font-black">{report.reporter?.username?.[0]}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="min-w-0">
-                                                <p className="font-black text-xl text-slate-900 truncate">{report.reporter?.username}</p>
-                                                <p className="text-xs text-slate-400 font-bold italic truncate">{report.reporter?.email}</p>
-                                            </div>
+                                            <Link to={`/profile/${report.reporter?._id}`} className="flex items-center gap-4 group/reporter">
+                                                <Avatar className="h-14 w-14 border-2 border-white shadow-md">
+                                                    <AvatarImage src={report.reporter?.profileImage} />
+                                                    <AvatarFallback className="bg-slate-100 font-black">{report.reporter?.username?.[0]}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="min-w-0">
+                                                    <p className="font-black text-xl group-hover/reporter:text-orange-500 transition-colors truncate">{report.reporter?.username}</p>
+                                                    <p className="text-xs text-slate-400 font-bold italic truncate">{report.reporter?.email}</p>
+                                                </div>
+                                            </Link>
                                         </div>
                                     </div>
 
@@ -170,13 +174,13 @@ const AdminDashboard = () => {
 
                                         <div className="grid grid-cols-2 gap-2 md:gap-3">
                                             <Button
-                                                disabled={isAuthorDeleted}
+                                                disabled={isAuthorDeleted || report.recipe?.author?.isBlocked}
                                                 onClick={() => triggerConfirm('block', `/admin/user/${report.recipe?.author?._id}/block`, 'put', 'Авторът е блокиран', { reportId: report._id }, 'Блокиране на автор', 'Това ще изтрие всички негови рецепти и коментари!', 'Блокирай')}
                                                 variant="outline"
-                                                className="flex-1 flex items-center justify-center gap-1 md:gap-2 border-slate-200 font-black text-[8px] md:text-[10px] uppercase text-slate-600 py-5 rounded-xl hover:bg-slate-950 hover:text-white transition-all shadow-none transition-all shadow-none disabled:bg-slate-300 disabled:text-slate-600 disabled:opacity-100 disabled:cursor-not-allowed"
+                                                className="flex-1 flex items-center justify-center gap-1 md:gap-2 border-slate-200 font-black text-[8px] md:text-[10px] uppercase text-slate-600 py-5 rounded-xl hover:bg-slate-950 hover:text-white transition-all shadow-none"
                                             >
                                                 <Ban size={12} className="shrink-0" />
-                                                <span className="whitespace-nowrap">Блок Автор</span>
+                                                <span className="whitespace-nowrap">{report.recipe?.author?.isBlocked ? "Блокиран" : "Блок Автор"}</span>
                                             </Button>
 
                                             <Button
@@ -230,16 +234,18 @@ const AdminDashboard = () => {
                         {data.pendingRecipes.map(recipe => (
                             <Card key={recipe._id} className="p-8 border-none shadow-2xl rounded-[2.5rem] bg-white flex flex-col w-full group">
                                 <div className="flex justify-between items-start mb-6">
-                                    <div className="flex items-center gap-3 min-w-0">
+                                    <Link to={`/profile/${recipe.author?._id}`} className="flex items-center gap-3 min-w-0 group/author">
                                         <Avatar className="h-12 w-12 border-2 border-white shadow-md flex-shrink-0">
                                             <AvatarImage src={recipe.author?.profileImage} />
                                             <AvatarFallback className="font-black text-lg">{recipe.author?.username?.[0]}</AvatarFallback>
                                         </Avatar>
                                         <div className="min-w-0">
-                                            <p className="font-black text-slate-900 truncate">{recipe.author?.username}</p>
+                                            <p className={`font-black group-hover/author:text-orange-500 transition-colors truncate ${recipe.author?.isBlocked ? "text-red-500" : "text-slate-900"}`}>
+                                                {recipe.author?.username} {recipe.author?.isBlocked && "[БЛОКИРАН]"}
+                                            </p>
                                             <p className="text-[10px] text-slate-400 font-bold uppercase truncate italic">{recipe.author?.email}</p>
                                         </div>
-                                    </div>
+                                    </Link>
                                     <Link to={`/recipe/${recipe._id}`} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:bg-orange-500 hover:text-white transition-all flex-shrink-0 shadow-sm">
                                         <Eye size={20} />
                                     </Link>
@@ -262,7 +268,7 @@ const AdminDashboard = () => {
                                     >
                                         <Check className="mr-2" size={18} /> ОДОБРИ
                                     </Button>
-                                    <Button onClick={() => triggerConfirm('delete', `/admin/recipe/${recipe._id}`, 'delete', 'Изтрита', {}, 'Изтрий', `Сигурни ли сте, че искате да отклоните "${recipe.title}"?`)} className="bg-slate-100 hover:bg-red-500 hover:text-white text-slate-400 rounded-xl py-6 px-6 transition-all">
+                                    <Button onClick={() => triggerConfirm('delete', `/admin/recipe/${recipe._id}`, 'delete', 'Изтрита', {}, 'Изтрий', `Сигурни ли сте, че искате да отклоните "${recipe.title}"?`)} className="bg-slate-100 hover:bg-red-500 hover:text-white text-slate-400 rounded-xl py-6 px-6 transition-all border-none">
                                         <X size={18} />
                                     </Button>
                                 </div>
@@ -285,16 +291,18 @@ const AdminDashboard = () => {
                             return (
                                 <Card key={recipe._id} className="p-8 border-none shadow-2xl rounded-[2.5rem] bg-white flex flex-col w-full group font-sans">
                                     <div className="flex justify-between items-start mb-6 font-sans">
-                                        <div className="flex items-center gap-3 min-w-0 font-sans">
+                                        <Link to={`/profile/${recipe.author?._id}`} className="flex items-center gap-3 min-w-0 group/author">
                                             <Avatar className="h-12 w-12 border-2 border-white shadow-md flex-shrink-0">
                                                 <AvatarImage src={recipe.author?.profileImage} />
                                                 <AvatarFallback className="font-black text-lg">{recipe.author?.username?.[0]}</AvatarFallback>
                                             </Avatar>
                                             <div className="min-w-0 font-sans">
-                                                <p className="font-black text-slate-900 font-sans">{recipe.author?.username}</p>
+                                                <p className={`font-black group-hover/author:text-orange-500 transition-colors truncate ${recipe.author?.isBlocked ? "text-red-500" : "text-slate-900"}`}>
+                                                    {recipe.author?.username} {recipe.author?.isBlocked && "[БЛОКИРАН]"}
+                                                </p>
                                                 <p className="text-[10px] text-slate-400 font-bold uppercase truncate italic tracking-widest font-sans">{recipe.author?.email}</p>
                                             </div>
-                                        </div>
+                                        </Link>
                                         <Link to={`/recipe/${recipe._id}`} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:bg-orange-500 hover:text-white transition-all flex-shrink-0 shadow-sm">
                                             <Eye size={20} />
                                         </Link>
@@ -306,10 +314,10 @@ const AdminDashboard = () => {
                                         "{displayDescription}"
                                     </p>
                                     <div className="flex gap-3 pt-6 border-t border-slate-50 mt-auto">
-                                        <Button onClick={() => triggerConfirm('approve', `/admin/recipe/${recipe._id}/approve`, 'put', 'Приложено!', {}, 'Одобри промени', 'Сигурни ли сте, че искате да одобрите промените?', 'Приложи')} className="flex-1 bg-emerald-500 hover:bg-slate-950 text-white font-black rounded-xl py-6 transition-all active:scale-95 text-xs uppercase">
+                                        <Button onClick={() => triggerConfirm('approve', `/admin/recipe/${recipe._id}/approve`, 'put', 'Приложено!', {}, 'Одобри промени', 'Сигурни ли сте, че искате да одобрите промените?', 'Приложи')} className="flex-1 bg-emerald-500 hover:bg-slate-950 text-white font-black rounded-xl py-6 transition-all active:scale-95 text-xs uppercase border-none shadow-xl shadow-emerald-50">
                                             <Check className="mr-2" size={18} /> ПРИЛОЖИ
                                         </Button>
-                                        <Button onClick={() => triggerConfirm('reject', `/admin/recipe/${recipe._id}/reject-update`, 'put', 'Отхвърлени', {}, 'Отказ', 'Сигурни ли сте, че искате да отклоните промените?')} className="bg-slate-100 hover:bg-red-500 hover:text-white text-slate-400 rounded-xl py-6 px-6 transition-all text-xs uppercase">
+                                        <Button onClick={() => triggerConfirm('reject', `/admin/recipe/${recipe._id}/reject-update`, 'put', 'Отхвърлени', {}, 'Отказ', 'Сигурни ли сте, че искате да отклоните промените?')} className="bg-slate-100 hover:bg-red-500 hover:text-white text-slate-400 rounded-xl py-6 px-6 transition-all text-xs uppercase border-none">
                                             <X size={18} />
                                         </Button>
                                     </div>
@@ -329,21 +337,21 @@ const AdminDashboard = () => {
                         {data.blockedUsers?.map(user => (
                             <Card key={user._id} className="p-8 border-none shadow-2xl rounded-[2.5rem] bg-white flex flex-col w-full group">
                                 <div className="flex justify-between items-start mb-2">
-                                    <div className="flex items-center gap-3 min-w-0">
+                                    <Link to={`/profile/${user._id}`} className="flex items-center gap-3 min-w-0 group/user">
                                         <Avatar className="h-12 w-12 border-2 border-white shadow-md flex-shrink-0">
                                             <AvatarImage src={user.profileImage} />
                                             <AvatarFallback className="font-black text-lg">{user.username?.[0]}</AvatarFallback>
                                         </Avatar>
                                         <div className="min-w-0">
-                                            <p className="font-black text-slate-900 truncate">{user.username}</p>
+                                            <p className="font-black group-hover:text-orange-500 transition-colors truncate">{user.username}</p>
                                             <p className="text-[10px] text-slate-400 font-bold uppercase truncate italic">{user.email}</p>
                                         </div>
-                                    </div>
+                                    </Link>
                                 </div>
                                 <div className="flex gap-3 pt-6 border-t border-slate-50 mt-auto">
                                     <Button
                                         onClick={() => triggerConfirm('unblock', `/admin/user/${user._id}/unblock`, 'put', 'Разблокиран!', {}, 'Разблокиране', `Искате ли да върнете достъпа на ${user.username}?`, 'Разблокирай')}
-                                        className="flex-1 bg-emerald-500 hover:bg-slate-950 text-white font-black rounded-xl py-6 transition-all active:scale-95"
+                                        className="flex-1 bg-emerald-500 hover:bg-slate-950 text-white font-black rounded-xl py-6 transition-all active:scale-95 shadow-xl shadow-emerald-100 border-none"
                                     >
                                         <UserCheck className="mr-2" size={18} /> РАЗБЛОКИРАЙ
                                     </Button>

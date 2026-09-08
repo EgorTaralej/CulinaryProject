@@ -76,7 +76,9 @@ const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
                                 {recipe.author?.username?.[0] || "?"}
                             </AvatarFallback>
                         </Avatar>
-                        <span className="text-slate-900">{recipe.author?.username}</span>
+                        <span className={recipe.author?.isBlocked ? "text-red-500 font-black" : "text-slate-900"}>
+                            {recipe.author?.username} {recipe.author?.isBlocked && "[БЛОКИРАН]"}
+                        </span>
                     </div>
                     <div className="flex items-center gap-1.5 border-l border-slate-200 pl-4">
                         <Clock size={14} className="text-orange-500" />
@@ -202,7 +204,9 @@ const Profile = () => {
                 <div className="w-full space-y-4">
                     <div className="flex justify-between items-start w-full">
                         <div>
-                            <h1 className="text-4xl font-black text-slate-950 tracking-tight">{profileData?.username}</h1>
+                            <h1 className="text-4xl font-black text-slate-950 tracking-tight">
+                                {profileData?.username} {profileData?.isBlocked && <span className="text-red-500 font-black text-xl">[БЛОКИРАН]</span>}
+                            </h1>
                             <p className="text-slate-400 font-bold">@{profileData?.username?.toLowerCase()}</p>
                         </div>
 

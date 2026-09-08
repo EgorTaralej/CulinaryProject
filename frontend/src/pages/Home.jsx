@@ -139,12 +139,9 @@ const Home = () => {
                         <TabsContent value="all" className="w-full mt-0 outline-none border-none shadow-none">
                             {displayRecipes.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-                                    {displayRecipes.map(recipe => {
-                                        const isAuthor = user?.id === (recipe.author?._id || recipe.author);
-                                        const isAdmin = user?.role === 'admin';
-                                        const displayData = ((isAuthor || isAdmin) && recipe.hasPendingUpdates) ? { ...recipe, ...recipe.pendingUpdates } : recipe;
-                                        return <RecipeCard key={recipe._id} recipe={displayData} />;
-                                    })}
+                                    {displayRecipes.map(recipe => (
+                                        <RecipeCard key={recipe._id} recipe={recipe} />
+                                    ))}
                                 </div>
                             ) : (
                                 <div className="py-20 text-center text-slate-300 font-bold uppercase italic text-xl">Няма открити рецепти.</div>
@@ -154,12 +151,9 @@ const Home = () => {
                         <TabsContent value="following" className="w-full mt-0 outline-none border-none shadow-none">
                             {feedRecipes.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-                                    {feedRecipes.map(recipe => {
-                                        const isAuthor = user?.id === (recipe.author?._id || recipe.author);
-                                        const isAdmin = user?.role === 'admin';
-                                        const displayData = ((isAuthor || isAdmin) && recipe.hasPendingUpdates) ? { ...recipe, ...recipe.pendingUpdates } : recipe;
-                                        return <RecipeCard key={recipe._id} recipe={displayData} />;
-                                    })}
+                                    {feedRecipes.map(recipe => (
+                                        <RecipeCard key={recipe._id} recipe={recipe} />
+                                    ))}
                                 </div>
                             ) : (
                                 <div className="py-24 text-center bg-slate-50 rounded-[3.5rem] border-4 border-dashed border-slate-100 px-6">

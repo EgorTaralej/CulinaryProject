@@ -12,13 +12,24 @@ router.get('/dashboard', [auth, admin], async (req, res) => {
         const reports = await Report.find({ status: 'pending' })
             .populate({
                 path: 'recipe',
-                populate: { path: 'author', select: 'username email profileImage' }
+                populate: { path: 'author', select: 'username email profileImage isBlocked' }
             })
             .populate('reporter', ['username', 'email', 'profileImage'])
             .sort({ createdAt: -1 });
 
-        const pendingRecipes = await Recipe.find({ status: 'pending' }).populate('author', ['username', 'email', 'profileImage']);
-        const recipesWithUpdates = await Recipe.find({ hasPendingUpdates: true }).populate('author', ['username', 'email', 'profileImage']);
+        const blockedUsersData = await User.find({ isBlocked: true }).select('_id');
+        const blockedIds = blockedUsersData.map(u => u._id);
+
+        const pendingRecipes = await Recipe.find({ 
+            status: 'pending', 
+            author: { $nin: blockedIds } 
+        }).populate('author', ['username', 'email', 'profileImage', 'isBlocked']);
+
+        const recipesWithUpdates = await Recipe.find({ 
+            hasPendingUpdates: true, 
+            author: { $nin: blockedIds } 
+        }).populate('author', ['username', 'email', 'profileImage', 'isBlocked']);
+        
         const blockedUsers = await User.find({ isBlocked: true }).select('username email profileImage createdAt');
 
         res.json({ reports, pendingRecipes, recipesWithUpdates, blockedUsers });
@@ -57,13 +68,12 @@ router.put('/recipe/:id/reject-update', [auth, admin], async (req, res) => {
 router.put('/user/:id/block', [auth, admin], async (req, res) => {
     try {
         if (req.params.id === req.user.id) return res.status(400).json({ message: "Не можете да блокирате себе си!" });
-        const { reportId } = req.body;
+        const { reportId } = req.body || {};
         const user = await User.findById(req.params.id);
         if (!user) return res.status(404).json({ message: "User not found" });
         user.isBlocked = true;
         await user.save();
 
-        await Recipe.updateMany({ author: user._id }, { status: 'blocked' });
         await User.updateMany({}, { $pull: { followers: user._id, following: user._id } });
         if (reportId) {
             await Report.findByIdAndUpdate(reportId, { status: 'resolved' }, { returnDocument: 'after' });
@@ -84,9 +94,7 @@ router.put('/user/:id/unblock', [auth, admin], async (req, res) => {
         user.isBlocked = false;
         await user.save();
 
-        await Recipe.updateMany({ author: user._id, status: 'blocked' }, { status: 'approved' });
-
-        res.json({ message: "Потребителят е разблокиран и рецептите му са възстановени." });
+        res.json({ message: "Потребителят е разблокиран." });
     } catch (err) {
         res.status(500).send('Server Error');
     }
