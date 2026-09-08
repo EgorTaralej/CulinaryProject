@@ -349,7 +349,7 @@ const CreateRecipe = ({ initialData = null }) => {
                                             setIngredients(newIngs);
                                         }}
                                     />
-                                    {index !== 0 && (
+                                    {index !== 0 ? (
                                         <Button
                                             type="button"
                                             variant="ghost"
@@ -359,6 +359,8 @@ const CreateRecipe = ({ initialData = null }) => {
                                         >
                                             <Trash2 size={20} />
                                         </Button>
+                                    ) : (
+                                        <div className="w-10" />
                                     )}
                                 </div>
                             ))}

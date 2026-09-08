@@ -75,7 +75,7 @@ const RecipeDetails = () => {
                 const url = user.role === 'admin' ? `/admin/recipe/${recipe._id}` : `/recipes/${recipe._id}`;
                 await api.delete(url);
                 toast({ title: "Рецептата е изтрита успешно." });
-                navigate('/profile');
+                navigate(user.role === 'admin' ? '/' : '/profile');
             } else if (type === 'blockUser') {
                 await api.put(`/admin/user/${data.id}/block`);
                 toast({ title: `Потребителят ${data.username} е блокиран.` });
@@ -375,6 +375,22 @@ const RecipeDetails = () => {
                 </div>
             </div>
 
+            <div className="relative">
+                <Card className="p-8 rounded-[2.5rem] shadow-xl border-none bg-white sticky top-24">
+                    <h3 className="text-2xl font-black text-slate-900 mb-8 border-b-4 border-orange-500 pb-2 w-fit">Съставки</h3>
+                    <ul className="space-y-5">
+                        {recipe.ingredients.map((ing, i) => (
+                            <li key={i} className="text-lg text-slate-600 flex items-start gap-3 group">
+                                <div className="w-2 h-2 bg-orange-500 rounded-full mt-2.5 group-hover:scale-150 transition-transform" />
+                                <span className="font-medium">{ing}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </Card>
+            </div>
+
+            <Separator className="my-16 bg-slate-100" />
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16 items-start">
                 <div className="lg:col-span-2 space-y-12">
                     <h2 className="text-3xl font-black text-slate-900 flex items-center gap-3"><Utensils className="text-orange-500" /> Инструкции</h2>
@@ -397,19 +413,6 @@ const RecipeDetails = () => {
                             </div>
                         </div>
                     )}
-                </div>
-                <div className="relative">
-                    <Card className="p-8 rounded-[2.5rem] shadow-xl border-none bg-white sticky top-24">
-                        <h3 className="text-2xl font-black text-slate-900 mb-8 border-b-4 border-orange-500 pb-2 w-fit">Съставки</h3>
-                        <ul className="space-y-5">
-                            {recipe.ingredients.map((ing, i) => (
-                                <li key={i} className="text-lg text-slate-600 flex items-start gap-3 group">
-                                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2.5 group-hover:scale-150 transition-transform" />
-                                    <span className="font-medium">{ing}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </Card>
                 </div>
             </div>
 

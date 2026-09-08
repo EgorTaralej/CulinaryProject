@@ -53,7 +53,7 @@ const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
             </div>
 
             <div className="flex flex-col justify-center flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1 md:mb-2">
+                <div className="flex items-start justify-between gap-2 mb-2 md:mb-3">
                     <h3 className="text-[17px] font-bold text-slate-800 leading-tight line-clamp-2 break-all overflow-wrap-anywhere">
                         {displayData.title}
                     </h3>
@@ -64,9 +64,6 @@ const HorizontalRecipeCard = ({ recipe, isMyProfile }) => {
                     )}
                 </div>
 
-                <p className="text-slate-500 text-xs md:text-base line-clamp-2 leading-relaxed mb-3 md:mb-4 font-medium italic">
-                    {displayData.ingredients?.join(' • ')}
-                </p>
 
                 <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-slate-400 text-[10px] md:text-xs font-black uppercase tracking-widest">
                     <div className="flex items-center gap-2">
@@ -222,15 +219,17 @@ const Profile = () => {
                                 </div>
                             )
                         ) : (
-                            <Button
-                                onClick={handleFollow}
-                                className={`px-10 py-6 rounded-xl font-black text-lg shadow-lg transition-all border-none ${isFollowing
-                                    ? "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-500 shadow-none"
-                                    : "bg-slate-950 text-white hover:bg-orange-500"
-                                    }`}
-                            >
-                                {isFollowing ? <><UserCheck className="mr-2" /> Отпоследвай</> : <><UserPlus className="mr-2" /> Последвай</>}
-                            </Button>
+                            !profileData.isBlocked && (
+                                <Button
+                                    onClick={handleFollow}
+                                    className={`px-10 py-6 rounded-xl font-black text-lg shadow-lg transition-all border-none ${isFollowing
+                                        ? "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-500 shadow-none"
+                                        : "bg-slate-950 text-white hover:bg-orange-500"
+                                        }`}
+                                >
+                                    {isFollowing ? <><UserCheck className="mr-2" /> Отпоследвай</> : <><UserPlus className="mr-2" /> Последвай</>}
+                                </Button>
+                            )
                         )}
                     </div>
 

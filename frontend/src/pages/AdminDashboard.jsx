@@ -268,7 +268,7 @@ const AdminDashboard = () => {
                                     >
                                         <Check className="mr-2" size={18} /> ОДОБРИ
                                     </Button>
-                                    <Button onClick={() => triggerConfirm('delete', `/admin/recipe/${recipe._id}`, 'delete', 'Изтрита', {}, 'Изтрий', `Сигурни ли сте, че искате да отклоните "${recipe.title}"?`)} className="bg-slate-100 hover:bg-red-500 hover:text-white text-slate-400 rounded-xl py-6 px-6 transition-all border-none">
+                                    <Button onClick={() => triggerConfirm('delete', `/admin/recipe/${recipe._id}`, 'delete', 'Рецептата е изтрита.', {}, 'Изтрий', `Сигурни ли сте, че искате да отклоните "${recipe.title}"?`)} className="bg-slate-100 hover:bg-red-500 hover:text-white text-slate-400 rounded-xl py-6 px-6 transition-all border-none">
                                         <X size={18} />
                                     </Button>
                                 </div>
@@ -350,7 +350,7 @@ const AdminDashboard = () => {
                                 </div>
                                 <div className="flex gap-3 pt-6 border-t border-slate-50 mt-auto">
                                     <Button
-                                        onClick={() => triggerConfirm('unblock', `/admin/user/${user._id}/unblock`, 'put', 'Разблокиран!', {}, 'Разблокиране', `Искате ли да върнете достъпа на ${user.username}?`, 'Разблокирай')}
+                                        onClick={() => triggerConfirm('unblock', `/admin/user/${user._id}/unblock`, 'put', 'Разблокиран!', {}, 'Разблокиране', `Сигурни ли сте, че искате да върнете достъпа на ${user.username} към профила му?`, 'Разблокирай')}
                                         className="flex-1 bg-emerald-500 hover:bg-slate-950 text-white font-black rounded-xl py-6 transition-all active:scale-95 shadow-xl shadow-emerald-100 border-none"
                                     >
                                         <UserCheck className="mr-2" size={18} /> РАЗБЛОКИРАЙ
