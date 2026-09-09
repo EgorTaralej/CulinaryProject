@@ -1,11 +1,11 @@
 const request = require('supertest');
 const app = require('../server');
-const mongoose = require('mongoose');
 
 let userToken = '';
 let adminToken = '';
 let testRecipeId = '';
 let testUserId = '';
+let testCommentId = '';
 
 describe('Culinary App - Система за тестване (Acceptance Tests)', () => {
 
@@ -18,6 +18,7 @@ describe('Culinary App - Система за тестване (Acceptance Tests)
                 password: 'password123'
             });
         expect(res.statusCode).toEqual(201);
+        testUserId = res.body._id;
     });
 
     it('Рецепта от потребител трябва да е със статус "pending"', async () => {
@@ -65,13 +66,60 @@ describe('Culinary App - Система за тестване (Acceptance Tests)
         expect(res.body.status).toBe('approved');
     });
 
-    it('Редакция на рецепта трябва да я върне за одобрение', async () => {
+    it('Редакция на рецепта трябва да я върне за одобрение (status pending)', async () => {
         const res = await request(app)
             .put(`/api/recipes/${testRecipeId}`)
             .set('x-auth-token', userToken)
             .send({ title: 'Променено заглавие' });
 
         expect(res.body.status).toBe('pending');
+    });
+
+    it('Потребител може да остави коментар', async () => {
+        const res = await request(app)
+            .post(`/api/recipes/${testRecipeId}/comment`)
+            .set('x-auth-token', userToken)
+            .send({ text: 'Страхотна рецепта!' });
+
+        expect(res.statusCode).toEqual(201);
+        testCommentId = res.body._id;
+    });
+
+    it('Авторът може да редактира своя коментар', async () => {
+        const res = await request(app)
+            .put(`/api/recipes/comment/${testCommentId}`)
+            .set('x-auth-token', userToken)
+            .send({ text: 'Редактиран коментар!' });
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.text).toBe('Редактиран коментар!');
+    });
+
+    it('Потребител може да добави в любими', async () => {
+        const res = await request(app)
+            .put(`/api/users/favorite/${testRecipeId}`)
+            .set('x-auth-token', userToken);
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.message).toBe("Added to favorites");
+    });
+
+    it('Администратор блокира потребител', async () => {
+        const res = await request(app)
+            .put(`/api/admin/user/${testUserId}/block`)
+            .set('x-auth-token', adminToken)
+            .send({});
+
+        expect(res.statusCode).toEqual(200);
+    });
+
+    it('Администратор разблокира потребител', async () => {
+        const res = await request(app)
+            .put(`/api/admin/user/${testUserId}/unblock`)
+            .set('x-auth-token', adminToken)
+            .send({});
+
+        expect(res.statusCode).toEqual(200);
     });
 
     it('Потребител може да докладва рецепта', async () => {
