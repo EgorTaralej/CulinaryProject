@@ -29,7 +29,7 @@ RecipeShare е пълнофункционално уеб приложение (F
 
 1. **Клониране на хранилището:**
    ```bash
-   git clone https://github.com/yourusername/recipe-share.git
+   git clone https://github.com/EgorTaralej/CulinaryProject.git
    cd recipe-share
    ```
 2. **Настройка на Бекенд:**
@@ -55,7 +55,10 @@ RecipeShare е пълнофункционално уеб приложение (F
    ```bash
     cd ../frontend
     npm install
-    npm run dev
+    # За стандартно стартиране:
+    npm run dev 
+    # За достъп от други устройства в мрежата:
+    npx vite --host
     ```
   
 🧪 Тестване
